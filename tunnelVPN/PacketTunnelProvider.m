@@ -93,6 +93,7 @@
     [self.packetFlow readPacketObjectsWithCompletionHandler:^(NSArray<NEPacket *> * _Nonnull packets) {
         [packets enumerateObjectsUsingBlock:^(NEPacket * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
             dispatch_async(self.socketQueue, ^{
+                //tcp socket write
                 [self.socket writeData:obj.data withTimeout:-1 tag:100];
                 
 //                IPPacket * pkt = [[IPPacket alloc] initWithRawData:obj.data];
@@ -207,7 +208,7 @@
 - (void)socket:(GCDAsyncSocket *)sock didReadData:(NSData *)data withTag:(long)tag {
     NSMutableArray * arr = [self getCorrectPacket:data];
     for (NSData *obj in arr) {
-//        NSLog(@"receive data from server: %@", [obj hexString]);
+        NSLog(@"receive data from server: %@", [obj hexString]);
     }
     // call this to continue read data from client.
     [sock readDataWithTimeout:-1 tag:100];

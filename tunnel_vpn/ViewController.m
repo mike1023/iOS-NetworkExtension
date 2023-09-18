@@ -15,7 +15,6 @@
 #define EXTENSION_BUNDLE_ID @"com.opentext.harris.tunnel-vpn.tunnelVPN"
 
 #define HOST @"127.0.0.1"
-//#define HOST @"10.30.30.142"
 #define PORT @"12344"
 
 static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
@@ -46,7 +45,6 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
                     break;
                 }
             }
-//            self.manager = [managers firstObject];
         }
     }];
     [[NSNotificationCenter defaultCenter] addObserverForName:NEVPNStatusDidChangeNotification object:self.manager.connection queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification * _Nonnull note) {
@@ -173,13 +171,13 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
 
 
 - (void)socket:(GCDAsyncSocket *)sock didReadData:(NSData *)data withTag:(long)tag {
-    NSLog(@"**%@", [data hexString]);
+//    NSLog(@"**%@", [data hexString]);
     NSMutableArray * res = [self getCorrectPacket:data];
     for (NSData *obj in res) {
         NSLog(@"==%@", [obj hexString]);
-//        IPPacket * pkt = [[IPPacket alloc] initWithRawData:obj];
+//        [sock writeData:data withTimeout:-1 tag:tag];
     }
-//    [sock writeData:data withTimeout:-1 tag:tag];
+    [sock writeData:data withTimeout:-1 tag:tag];
     // call this to continue read data from client.
     [sock readDataWithTimeout:-1 tag:100];
 }
@@ -205,13 +203,13 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
 
 - (void)socketDidDisconnect:(GCDAsyncSocket *)sock withError:(NSError *)err {
     NSLog(@"sock %@ disconnect...", sock);
-//    if (err) {
-//        NSLog(@"DidDisconnect error: %@", err.localizedDescription);
-//    } else if (sock != self.socket) {
-//        @synchronized(self.clientSockets) {
-//            [self.clientSockets removeObject:sock];
-//        }
-//    }
+    if (err) {
+        NSLog(@"DidDisconnect error: %@", err.localizedDescription);
+    } else if (sock != self.socket) {
+        @synchronized(self.clientSockets) {
+            [self.clientSockets removeObject:sock];
+        }
+    }
 }
 
 
