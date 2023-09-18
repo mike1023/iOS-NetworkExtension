@@ -1,24 +1,97 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="13122.16" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="21701" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
+    <device id="retina6_12" orientation="portrait" appearance="light"/>
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="13104.12"/>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="21678"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
         <!--View Controller-->
         <scene sceneID="tne-QT-ifu">
             <objects>
-                <viewController id="BYZ-38-t0r" customClass="ViewController" customModuleProvider="" sceneMemberID="viewController">
+                <viewController id="BYZ-38-t0r" customClass="ViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
-                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <color key="backgroundColor" xcode11CocoaTouchSystemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
+                        <subviews>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="59k-CL-eUG">
+                                <rect key="frame" x="16" y="97" width="119" height="35"/>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="plain" title="CONFIGURE"/>
+                                <connections>
+                                    <action selector="setupProviderManager:" destination="BYZ-38-t0r" eventType="touchUpInside" id="q1f-Pm-TzQ"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="eRc-NH-teM">
+                                <rect key="frame" x="263" y="168" width="96" height="35"/>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="plain" title="stop VPN"/>
+                                <connections>
+                                    <action selector="stopVPN:" destination="BYZ-38-t0r" eventType="touchUpInside" id="Asa-pc-9H1"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="aDl-eg-LrA">
+                                <rect key="frame" x="262" y="97" width="97" height="35"/>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="plain" title="start VPN"/>
+                                <connections>
+                                    <action selector="startVPN:" destination="BYZ-38-t0r" eventType="touchUpInside" id="ehd-c5-DKO"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="PKP-bt-xoa">
+                                <rect key="frame" x="16" y="168" width="112" height="35"/>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="plain" title="start server"/>
+                                <connections>
+                                    <action selector="startServer:" destination="BYZ-38-t0r" eventType="touchUpInside" id="Hqy-Gb-OzD"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="TYn-av-SEg">
+                                <rect key="frame" x="16" y="247" width="100" height="35"/>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="plain" title="send data"/>
+                                <connections>
+                                    <action selector="sendDataToClient:" destination="BYZ-38-t0r" eventType="touchUpInside" id="Z4X-00-iJZ"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="VEb-Gv-Q9c">
+                                <rect key="frame" x="16" y="344" width="110" height="35"/>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="plain" title="stop server"/>
+                                <connections>
+                                    <action selector="stopServer:" destination="BYZ-38-t0r" eventType="touchUpInside" id="wAM-u2-akU"/>
+                                </connections>
+                            </button>
+                        </subviews>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="VEb-Gv-Q9c" firstAttribute="top" secondItem="TYn-av-SEg" secondAttribute="bottom" constant="62" id="8Vo-AD-8q6"/>
+                            <constraint firstItem="TYn-av-SEg" firstAttribute="top" secondItem="PKP-bt-xoa" secondAttribute="bottom" constant="44" id="Cm6-Ng-cBS"/>
+                            <constraint firstItem="PKP-bt-xoa" firstAttribute="top" secondItem="59k-CL-eUG" secondAttribute="bottom" constant="36" id="Fkp-bR-CJI"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="eRc-NH-teM" secondAttribute="trailing" constant="34" id="LL3-IT-4IY"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="aDl-eg-LrA" secondAttribute="trailing" constant="34" id="LfB-wk-vjQ"/>
+                            <constraint firstItem="PKP-bt-xoa" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="16" id="R2I-gP-jc8"/>
+                            <constraint firstItem="TYn-av-SEg" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="16" id="RQQ-7k-G2e"/>
+                            <constraint firstItem="VEb-Gv-Q9c" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="16" id="b7F-Nu-wgm"/>
+                            <constraint firstItem="59k-CL-eUG" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="38" id="hol-VB-3du"/>
+                            <constraint firstItem="59k-CL-eUG" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="16" id="jem-ww-kTJ"/>
+                            <constraint firstItem="aDl-eg-LrA" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="38" id="kwA-hM-6u2"/>
+                            <constraint firstItem="eRc-NH-teM" firstAttribute="top" secondItem="aDl-eg-LrA" secondAttribute="bottom" constant="36" id="pil-RY-8hS"/>
+                        </constraints>
                     </view>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
+            <point key="canvasLocation" x="121" y="4"/>
         </scene>
     </scenes>
+    <resources>
+        <systemColor name="systemBackgroundColor">
+            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
+    </resources>
 </document>

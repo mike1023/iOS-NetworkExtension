@@ -7,6 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		6F9464B02A85D2C200575DA5 /* NSData+HexString.m in Sources */ = {isa = PBXBuildFile; fileRef = 6F9464AE2A85D2C200575DA5 /* NSData+HexString.m */; };
+		6F9464B12A85D2C200575DA5 /* NSData+HexString.m in Sources */ = {isa = PBXBuildFile; fileRef = 6F9464AE2A85D2C200575DA5 /* NSData+HexString.m */; };
+		6F9464F02A85F9C600575DA5 /* IPPacket.m in Sources */ = {isa = PBXBuildFile; fileRef = 6F9464EF2A85F9C600575DA5 /* IPPacket.m */; };
+		6F9464F12A85F9C600575DA5 /* IPPacket.m in Sources */ = {isa = PBXBuildFile; fileRef = 6F9464EF2A85F9C600575DA5 /* IPPacket.m */; };
+		6FEE7D0D2A6E580D0039A658 /* IPConstant.m in Sources */ = {isa = PBXBuildFile; fileRef = 6FEE7D0A2A6E580C0039A658 /* IPConstant.m */; };
+		6FEE7D0E2A6E580D0039A658 /* IPConstant.m in Sources */ = {isa = PBXBuildFile; fileRef = 6FEE7D0A2A6E580C0039A658 /* IPConstant.m */; };
 		6FF0EF072A0DDC8700BD5145 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 6FF0EF062A0DDC8700BD5145 /* AppDelegate.m */; };
 		6FF0EF0A2A0DDC8700BD5145 /* SceneDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 6FF0EF092A0DDC8700BD5145 /* SceneDelegate.m */; };
 		6FF0EF0D2A0DDC8700BD5145 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 6FF0EF0C2A0DDC8700BD5145 /* ViewController.m */; };
@@ -14,9 +20,67 @@
 		6FF0EF122A0DDC8900BD5145 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6FF0EF112A0DDC8900BD5145 /* Assets.xcassets */; };
 		6FF0EF152A0DDC8900BD5145 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 6FF0EF132A0DDC8900BD5145 /* LaunchScreen.storyboard */; };
 		6FF0EF182A0DDC8900BD5145 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 6FF0EF172A0DDC8900BD5145 /* main.m */; };
+		6FF0EF262A0DDDC600BD5145 /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6FF0EF252A0DDDC600BD5145 /* NetworkExtension.framework */; };
+		6FF0EF2A2A0DDDC700BD5145 /* PacketTunnelProvider.m in Sources */ = {isa = PBXBuildFile; fileRef = 6FF0EF292A0DDDC700BD5145 /* PacketTunnelProvider.m */; };
+		6FF0EF2F2A0DDDC700BD5145 /* tunnelVPN.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 6FF0EF232A0DDDC600BD5145 /* tunnelVPN.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		6FF0EF352A0DDE3900BD5145 /* Network.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6FF0EF342A0DDE3900BD5145 /* Network.framework */; };
+		6FF0EF552A0E07BA00BD5145 /* Documentation.html in Resources */ = {isa = PBXBuildFile; fileRef = 6FF0EF392A0E07BA00BD5145 /* Documentation.html */; };
+		6FF0EF562A0E07BA00BD5145 /* Documentation.html in Resources */ = {isa = PBXBuildFile; fileRef = 6FF0EF392A0E07BA00BD5145 /* Documentation.html */; };
+		6FF0EF572A0E07BA00BD5145 /* GCDAsyncUdpSocket.m in Sources */ = {isa = PBXBuildFile; fileRef = 6FF0EF3A2A0E07BA00BD5145 /* GCDAsyncUdpSocket.m */; };
+		6FF0EF582A0E07BA00BD5145 /* GCDAsyncUdpSocket.m in Sources */ = {isa = PBXBuildFile; fileRef = 6FF0EF3A2A0E07BA00BD5145 /* GCDAsyncUdpSocket.m */; };
+		6FF0EF592A0E07BA00BD5145 /* GCDAsyncSocket.m in Sources */ = {isa = PBXBuildFile; fileRef = 6FF0EF3B2A0E07BA00BD5145 /* GCDAsyncSocket.m */; };
+		6FF0EF5A2A0E07BA00BD5145 /* GCDAsyncSocket.m in Sources */ = {isa = PBXBuildFile; fileRef = 6FF0EF3B2A0E07BA00BD5145 /* GCDAsyncSocket.m */; };
+		6FF0EF5D2A0E07BA00BD5145 /* DDTTYLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = 6FF0EF422A0E07BA00BD5145 /* DDTTYLogger.m */; };
+		6FF0EF5E2A0E07BA00BD5145 /* DDTTYLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = 6FF0EF422A0E07BA00BD5145 /* DDTTYLogger.m */; };
+		6FF0EF5F2A0E07BA00BD5145 /* DDASLLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = 6FF0EF452A0E07BA00BD5145 /* DDASLLogger.m */; };
+		6FF0EF602A0E07BA00BD5145 /* DDASLLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = 6FF0EF452A0E07BA00BD5145 /* DDASLLogger.m */; };
+		6FF0EF612A0E07BA00BD5145 /* DDContextFilterLogFormatter.m in Sources */ = {isa = PBXBuildFile; fileRef = 6FF0EF482A0E07BA00BD5145 /* DDContextFilterLogFormatter.m */; };
+		6FF0EF622A0E07BA00BD5145 /* DDContextFilterLogFormatter.m in Sources */ = {isa = PBXBuildFile; fileRef = 6FF0EF482A0E07BA00BD5145 /* DDContextFilterLogFormatter.m */; };
+		6FF0EF632A0E07BA00BD5145 /* DDDispatchQueueLogFormatter.m in Sources */ = {isa = PBXBuildFile; fileRef = 6FF0EF492A0E07BA00BD5145 /* DDDispatchQueueLogFormatter.m */; };
+		6FF0EF642A0E07BA00BD5145 /* DDDispatchQueueLogFormatter.m in Sources */ = {isa = PBXBuildFile; fileRef = 6FF0EF492A0E07BA00BD5145 /* DDDispatchQueueLogFormatter.m */; };
+		6FF0EF652A0E07BA00BD5145 /* DDMultiFormatter.m in Sources */ = {isa = PBXBuildFile; fileRef = 6FF0EF4C2A0E07BA00BD5145 /* DDMultiFormatter.m */; };
+		6FF0EF662A0E07BA00BD5145 /* DDMultiFormatter.m in Sources */ = {isa = PBXBuildFile; fileRef = 6FF0EF4C2A0E07BA00BD5145 /* DDMultiFormatter.m */; };
+		6FF0EF672A0E07BA00BD5145 /* README.txt in Resources */ = {isa = PBXBuildFile; fileRef = 6FF0EF4E2A0E07BA00BD5145 /* README.txt */; };
+		6FF0EF682A0E07BA00BD5145 /* README.txt in Resources */ = {isa = PBXBuildFile; fileRef = 6FF0EF4E2A0E07BA00BD5145 /* README.txt */; };
+		6FF0EF692A0E07BA00BD5145 /* DDLog.m in Sources */ = {isa = PBXBuildFile; fileRef = 6FF0EF4F2A0E07BA00BD5145 /* DDLog.m */; };
+		6FF0EF6A2A0E07BA00BD5145 /* DDLog.m in Sources */ = {isa = PBXBuildFile; fileRef = 6FF0EF4F2A0E07BA00BD5145 /* DDLog.m */; };
+		6FF0EF6B2A0E07BA00BD5145 /* DDAbstractDatabaseLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = 6FF0EF522A0E07BA00BD5145 /* DDAbstractDatabaseLogger.m */; };
+		6FF0EF6C2A0E07BA00BD5145 /* DDAbstractDatabaseLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = 6FF0EF522A0E07BA00BD5145 /* DDAbstractDatabaseLogger.m */; };
+		6FF0EF6D2A0E07BA00BD5145 /* DDFileLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = 6FF0EF532A0E07BA00BD5145 /* DDFileLogger.m */; };
+		6FF0EF6E2A0E07BA00BD5145 /* DDFileLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = 6FF0EF532A0E07BA00BD5145 /* DDFileLogger.m */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		6FF0EF2D2A0DDDC700BD5145 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 6FF0EEFA2A0DDC8700BD5145 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 6FF0EF222A0DDDC600BD5145;
+			remoteInfo = tunnelVPN;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		6FF0EF332A0DDDC700BD5145 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				6FF0EF2F2A0DDDC700BD5145 /* tunnelVPN.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		6F9464AE2A85D2C200575DA5 /* NSData+HexString.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSData+HexString.m"; sourceTree = "<group>"; };
+		6F9464AF2A85D2C200575DA5 /* NSData+HexString.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSData+HexString.h"; sourceTree = "<group>"; };
+		6F9464EE2A85F9C600575DA5 /* IPPacket.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IPPacket.h; sourceTree = "<group>"; };
+		6F9464EF2A85F9C600575DA5 /* IPPacket.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IPPacket.m; sourceTree = "<group>"; };
+		6FEE7D0A2A6E580C0039A658 /* IPConstant.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IPConstant.m; sourceTree = "<group>"; };
+		6FEE7D0B2A6E580C0039A658 /* IPConstant.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IPConstant.h; sourceTree = "<group>"; };
 		6FF0EF022A0DDC8700BD5145 /* tunnel_vpn.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = tunnel_vpn.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6FF0EF052A0DDC8700BD5145 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		6FF0EF062A0DDC8700BD5145 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -29,6 +93,38 @@
 		6FF0EF142A0DDC8900BD5145 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		6FF0EF162A0DDC8900BD5145 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		6FF0EF172A0DDC8900BD5145 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		6FF0EF1E2A0DDD8200BD5145 /* tunnel_vpn.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = tunnel_vpn.entitlements; sourceTree = "<group>"; };
+		6FF0EF232A0DDDC600BD5145 /* tunnelVPN.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = tunnelVPN.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		6FF0EF252A0DDDC600BD5145 /* NetworkExtension.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = NetworkExtension.framework; path = System/Library/Frameworks/NetworkExtension.framework; sourceTree = SDKROOT; };
+		6FF0EF282A0DDDC700BD5145 /* PacketTunnelProvider.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PacketTunnelProvider.h; sourceTree = "<group>"; };
+		6FF0EF292A0DDDC700BD5145 /* PacketTunnelProvider.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PacketTunnelProvider.m; sourceTree = "<group>"; };
+		6FF0EF2B2A0DDDC700BD5145 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		6FF0EF2C2A0DDDC700BD5145 /* tunnelVPN.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = tunnelVPN.entitlements; sourceTree = "<group>"; };
+		6FF0EF342A0DDE3900BD5145 /* Network.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Network.framework; path = System/Library/Frameworks/Network.framework; sourceTree = SDKROOT; };
+		6FF0EF392A0E07BA00BD5145 /* Documentation.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = Documentation.html; sourceTree = "<group>"; };
+		6FF0EF3A2A0E07BA00BD5145 /* GCDAsyncUdpSocket.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GCDAsyncUdpSocket.m; sourceTree = "<group>"; };
+		6FF0EF3B2A0E07BA00BD5145 /* GCDAsyncSocket.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GCDAsyncSocket.m; sourceTree = "<group>"; };
+		6FF0EF3C2A0E07BA00BD5145 /* GCDAsyncUdpSocket.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GCDAsyncUdpSocket.h; sourceTree = "<group>"; };
+		6FF0EF3D2A0E07BA00BD5145 /* GCDAsyncSocket.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GCDAsyncSocket.h; sourceTree = "<group>"; };
+		6FF0EF3E2A0E07BA00BD5145 /* CocoaAsyncSocket.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CocoaAsyncSocket.h; sourceTree = "<group>"; };
+		6FF0EF422A0E07BA00BD5145 /* DDTTYLogger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DDTTYLogger.m; sourceTree = "<group>"; };
+		6FF0EF432A0E07BA00BD5145 /* DDLog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DDLog.h; sourceTree = "<group>"; };
+		6FF0EF442A0E07BA00BD5145 /* DDAbstractDatabaseLogger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DDAbstractDatabaseLogger.h; sourceTree = "<group>"; };
+		6FF0EF452A0E07BA00BD5145 /* DDASLLogger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DDASLLogger.m; sourceTree = "<group>"; };
+		6FF0EF462A0E07BA00BD5145 /* DDFileLogger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DDFileLogger.h; sourceTree = "<group>"; };
+		6FF0EF482A0E07BA00BD5145 /* DDContextFilterLogFormatter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DDContextFilterLogFormatter.m; sourceTree = "<group>"; };
+		6FF0EF492A0E07BA00BD5145 /* DDDispatchQueueLogFormatter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DDDispatchQueueLogFormatter.m; sourceTree = "<group>"; };
+		6FF0EF4A2A0E07BA00BD5145 /* DDMultiFormatter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DDMultiFormatter.h; sourceTree = "<group>"; };
+		6FF0EF4B2A0E07BA00BD5145 /* DDContextFilterLogFormatter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DDContextFilterLogFormatter.h; sourceTree = "<group>"; };
+		6FF0EF4C2A0E07BA00BD5145 /* DDMultiFormatter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DDMultiFormatter.m; sourceTree = "<group>"; };
+		6FF0EF4D2A0E07BA00BD5145 /* DDDispatchQueueLogFormatter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DDDispatchQueueLogFormatter.h; sourceTree = "<group>"; };
+		6FF0EF4E2A0E07BA00BD5145 /* README.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README.txt; sourceTree = "<group>"; };
+		6FF0EF4F2A0E07BA00BD5145 /* DDLog.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DDLog.m; sourceTree = "<group>"; };
+		6FF0EF502A0E07BA00BD5145 /* DDTTYLogger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DDTTYLogger.h; sourceTree = "<group>"; };
+		6FF0EF512A0E07BA00BD5145 /* DDLog+LOGV.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "DDLog+LOGV.h"; sourceTree = "<group>"; };
+		6FF0EF522A0E07BA00BD5145 /* DDAbstractDatabaseLogger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DDAbstractDatabaseLogger.m; sourceTree = "<group>"; };
+		6FF0EF532A0E07BA00BD5145 /* DDFileLogger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DDFileLogger.m; sourceTree = "<group>"; };
+		6FF0EF542A0E07BA00BD5145 /* DDASLLogger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DDASLLogger.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -39,13 +135,25 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		6FF0EF202A0DDDC600BD5145 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6FF0EF262A0DDDC600BD5145 /* NetworkExtension.framework in Frameworks */,
+				6FF0EF352A0DDE3900BD5145 /* Network.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		6FF0EEF92A0DDC8700BD5145 = {
 			isa = PBXGroup;
 			children = (
+				6FF0EF362A0E07BA00BD5145 /* share */,
 				6FF0EF042A0DDC8700BD5145 /* tunnel_vpn */,
+				6FF0EF272A0DDDC700BD5145 /* tunnelVPN */,
+				6FF0EF242A0DDDC600BD5145 /* Frameworks */,
 				6FF0EF032A0DDC8700BD5145 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -54,6 +162,7 @@
 			isa = PBXGroup;
 			children = (
 				6FF0EF022A0DDC8700BD5145 /* tunnel_vpn.app */,
+				6FF0EF232A0DDDC600BD5145 /* tunnelVPN.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -61,6 +170,7 @@
 		6FF0EF042A0DDC8700BD5145 /* tunnel_vpn */ = {
 			isa = PBXGroup;
 			children = (
+				6FF0EF1E2A0DDD8200BD5145 /* tunnel_vpn.entitlements */,
 				6FF0EF052A0DDC8700BD5145 /* AppDelegate.h */,
 				6FF0EF062A0DDC8700BD5145 /* AppDelegate.m */,
 				6FF0EF082A0DDC8700BD5145 /* SceneDelegate.h */,
@@ -76,6 +186,103 @@
 			path = tunnel_vpn;
 			sourceTree = "<group>";
 		};
+		6FF0EF242A0DDDC600BD5145 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				6FF0EF342A0DDE3900BD5145 /* Network.framework */,
+				6FF0EF252A0DDDC600BD5145 /* NetworkExtension.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		6FF0EF272A0DDDC700BD5145 /* tunnelVPN */ = {
+			isa = PBXGroup;
+			children = (
+				6FF0EF282A0DDDC700BD5145 /* PacketTunnelProvider.h */,
+				6FF0EF292A0DDDC700BD5145 /* PacketTunnelProvider.m */,
+				6FF0EF2B2A0DDDC700BD5145 /* Info.plist */,
+				6FF0EF2C2A0DDDC700BD5145 /* tunnelVPN.entitlements */,
+			);
+			path = tunnelVPN;
+			sourceTree = "<group>";
+		};
+		6FF0EF362A0E07BA00BD5145 /* share */ = {
+			isa = PBXGroup;
+			children = (
+				6F9464EE2A85F9C600575DA5 /* IPPacket.h */,
+				6F9464EF2A85F9C600575DA5 /* IPPacket.m */,
+				6F9464AF2A85D2C200575DA5 /* NSData+HexString.h */,
+				6F9464AE2A85D2C200575DA5 /* NSData+HexString.m */,
+				6FEE7D0B2A6E580C0039A658 /* IPConstant.h */,
+				6FEE7D0A2A6E580C0039A658 /* IPConstant.m */,
+				6FF0EF372A0E07BA00BD5145 /* CocoaAsyncSocket */,
+			);
+			path = share;
+			sourceTree = "<group>";
+		};
+		6FF0EF372A0E07BA00BD5145 /* CocoaAsyncSocket */ = {
+			isa = PBXGroup;
+			children = (
+				6FF0EF382A0E07BA00BD5145 /* GCD */,
+				6FF0EF3E2A0E07BA00BD5145 /* CocoaAsyncSocket.h */,
+				6FF0EF402A0E07BA00BD5145 /* Vendor */,
+			);
+			path = CocoaAsyncSocket;
+			sourceTree = "<group>";
+		};
+		6FF0EF382A0E07BA00BD5145 /* GCD */ = {
+			isa = PBXGroup;
+			children = (
+				6FF0EF392A0E07BA00BD5145 /* Documentation.html */,
+				6FF0EF3A2A0E07BA00BD5145 /* GCDAsyncUdpSocket.m */,
+				6FF0EF3B2A0E07BA00BD5145 /* GCDAsyncSocket.m */,
+				6FF0EF3C2A0E07BA00BD5145 /* GCDAsyncUdpSocket.h */,
+				6FF0EF3D2A0E07BA00BD5145 /* GCDAsyncSocket.h */,
+			);
+			path = GCD;
+			sourceTree = "<group>";
+		};
+		6FF0EF402A0E07BA00BD5145 /* Vendor */ = {
+			isa = PBXGroup;
+			children = (
+				6FF0EF412A0E07BA00BD5145 /* CocoaLumberjack */,
+			);
+			path = Vendor;
+			sourceTree = "<group>";
+		};
+		6FF0EF412A0E07BA00BD5145 /* CocoaLumberjack */ = {
+			isa = PBXGroup;
+			children = (
+				6FF0EF422A0E07BA00BD5145 /* DDTTYLogger.m */,
+				6FF0EF432A0E07BA00BD5145 /* DDLog.h */,
+				6FF0EF442A0E07BA00BD5145 /* DDAbstractDatabaseLogger.h */,
+				6FF0EF452A0E07BA00BD5145 /* DDASLLogger.m */,
+				6FF0EF462A0E07BA00BD5145 /* DDFileLogger.h */,
+				6FF0EF472A0E07BA00BD5145 /* Extensions */,
+				6FF0EF4F2A0E07BA00BD5145 /* DDLog.m */,
+				6FF0EF502A0E07BA00BD5145 /* DDTTYLogger.h */,
+				6FF0EF512A0E07BA00BD5145 /* DDLog+LOGV.h */,
+				6FF0EF522A0E07BA00BD5145 /* DDAbstractDatabaseLogger.m */,
+				6FF0EF532A0E07BA00BD5145 /* DDFileLogger.m */,
+				6FF0EF542A0E07BA00BD5145 /* DDASLLogger.h */,
+			);
+			path = CocoaLumberjack;
+			sourceTree = "<group>";
+		};
+		6FF0EF472A0E07BA00BD5145 /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				6FF0EF482A0E07BA00BD5145 /* DDContextFilterLogFormatter.m */,
+				6FF0EF492A0E07BA00BD5145 /* DDDispatchQueueLogFormatter.m */,
+				6FF0EF4A2A0E07BA00BD5145 /* DDMultiFormatter.h */,
+				6FF0EF4B2A0E07BA00BD5145 /* DDContextFilterLogFormatter.h */,
+				6FF0EF4C2A0E07BA00BD5145 /* DDMultiFormatter.m */,
+				6FF0EF4D2A0E07BA00BD5145 /* DDDispatchQueueLogFormatter.h */,
+				6FF0EF4E2A0E07BA00BD5145 /* README.txt */,
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -86,15 +293,34 @@
 				6FF0EEFE2A0DDC8700BD5145 /* Sources */,
 				6FF0EEFF2A0DDC8700BD5145 /* Frameworks */,
 				6FF0EF002A0DDC8700BD5145 /* Resources */,
+				6FF0EF332A0DDDC700BD5145 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				6FF0EF2E2A0DDDC700BD5145 /* PBXTargetDependency */,
 			);
 			name = tunnel_vpn;
 			productName = tunnel_vpn;
 			productReference = 6FF0EF022A0DDC8700BD5145 /* tunnel_vpn.app */;
 			productType = "com.apple.product-type.application";
+		};
+		6FF0EF222A0DDDC600BD5145 /* tunnelVPN */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 6FF0EF302A0DDDC700BD5145 /* Build configuration list for PBXNativeTarget "tunnelVPN" */;
+			buildPhases = (
+				6FF0EF1F2A0DDDC600BD5145 /* Sources */,
+				6FF0EF202A0DDDC600BD5145 /* Frameworks */,
+				6FF0EF212A0DDDC600BD5145 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = tunnelVPN;
+			productName = tunnelVPN;
+			productReference = 6FF0EF232A0DDDC600BD5145 /* tunnelVPN.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -107,6 +333,11 @@
 				TargetAttributes = {
 					6FF0EF012A0DDC8700BD5145 = {
 						CreatedOnToolsVersion = 14.3;
+						LastSwiftMigration = 1430;
+					};
+					6FF0EF222A0DDDC600BD5145 = {
+						CreatedOnToolsVersion = 14.3;
+						LastSwiftMigration = 1430;
 					};
 				};
 			};
@@ -124,6 +355,7 @@
 			projectRoot = "";
 			targets = (
 				6FF0EF012A0DDC8700BD5145 /* tunnel_vpn */,
+				6FF0EF222A0DDDC600BD5145 /* tunnelVPN */,
 			);
 		};
 /* End PBXProject section */
@@ -136,6 +368,17 @@
 				6FF0EF152A0DDC8900BD5145 /* LaunchScreen.storyboard in Resources */,
 				6FF0EF122A0DDC8900BD5145 /* Assets.xcassets in Resources */,
 				6FF0EF102A0DDC8700BD5145 /* Main.storyboard in Resources */,
+				6FF0EF672A0E07BA00BD5145 /* README.txt in Resources */,
+				6FF0EF552A0E07BA00BD5145 /* Documentation.html in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6FF0EF212A0DDDC600BD5145 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6FF0EF682A0E07BA00BD5145 /* README.txt in Resources */,
+				6FF0EF562A0E07BA00BD5145 /* Documentation.html in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -146,14 +389,56 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6FF0EF692A0E07BA00BD5145 /* DDLog.m in Sources */,
+				6FF0EF5F2A0E07BA00BD5145 /* DDASLLogger.m in Sources */,
+				6FF0EF592A0E07BA00BD5145 /* GCDAsyncSocket.m in Sources */,
+				6FF0EF6D2A0E07BA00BD5145 /* DDFileLogger.m in Sources */,
 				6FF0EF0D2A0DDC8700BD5145 /* ViewController.m in Sources */,
+				6FF0EF612A0E07BA00BD5145 /* DDContextFilterLogFormatter.m in Sources */,
+				6FF0EF572A0E07BA00BD5145 /* GCDAsyncUdpSocket.m in Sources */,
 				6FF0EF072A0DDC8700BD5145 /* AppDelegate.m in Sources */,
+				6F9464F02A85F9C600575DA5 /* IPPacket.m in Sources */,
 				6FF0EF182A0DDC8900BD5145 /* main.m in Sources */,
+				6FF0EF652A0E07BA00BD5145 /* DDMultiFormatter.m in Sources */,
+				6FEE7D0D2A6E580D0039A658 /* IPConstant.m in Sources */,
+				6F9464B02A85D2C200575DA5 /* NSData+HexString.m in Sources */,
+				6FF0EF6B2A0E07BA00BD5145 /* DDAbstractDatabaseLogger.m in Sources */,
+				6FF0EF632A0E07BA00BD5145 /* DDDispatchQueueLogFormatter.m in Sources */,
+				6FF0EF5D2A0E07BA00BD5145 /* DDTTYLogger.m in Sources */,
 				6FF0EF0A2A0DDC8700BD5145 /* SceneDelegate.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		6FF0EF1F2A0DDDC600BD5145 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6FF0EF5A2A0E07BA00BD5145 /* GCDAsyncSocket.m in Sources */,
+				6FF0EF6E2A0E07BA00BD5145 /* DDFileLogger.m in Sources */,
+				6FF0EF5E2A0E07BA00BD5145 /* DDTTYLogger.m in Sources */,
+				6F9464B12A85D2C200575DA5 /* NSData+HexString.m in Sources */,
+				6FF0EF642A0E07BA00BD5145 /* DDDispatchQueueLogFormatter.m in Sources */,
+				6FF0EF582A0E07BA00BD5145 /* GCDAsyncUdpSocket.m in Sources */,
+				6F9464F12A85F9C600575DA5 /* IPPacket.m in Sources */,
+				6FF0EF6C2A0E07BA00BD5145 /* DDAbstractDatabaseLogger.m in Sources */,
+				6FF0EF662A0E07BA00BD5145 /* DDMultiFormatter.m in Sources */,
+				6FF0EF622A0E07BA00BD5145 /* DDContextFilterLogFormatter.m in Sources */,
+				6FF0EF6A2A0E07BA00BD5145 /* DDLog.m in Sources */,
+				6FF0EF2A2A0DDDC700BD5145 /* PacketTunnelProvider.m in Sources */,
+				6FF0EF602A0E07BA00BD5145 /* DDASLLogger.m in Sources */,
+				6FEE7D0E2A6E580D0039A658 /* IPConstant.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		6FF0EF2E2A0DDDC700BD5145 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 6FF0EF222A0DDDC600BD5145 /* tunnelVPN */;
+			targetProxy = 6FF0EF2D2A0DDDC700BD5145 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		6FF0EF0E2A0DDC8700BD5145 /* Main.storyboard */ = {
@@ -225,7 +510,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -277,7 +562,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
@@ -290,8 +575,11 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = tunnel_vpn/tunnel_vpn.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = 6D9BQ629VP;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = tunnel_vpn/Info.plist;
@@ -300,6 +588,7 @@
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -308,6 +597,9 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "com.opentext.harris.tunnel-vpn";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -317,8 +609,11 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = tunnel_vpn/tunnel_vpn.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = 6D9BQ629VP;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = tunnel_vpn/Info.plist;
@@ -327,6 +622,7 @@
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -335,6 +631,69 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "com.opentext.harris.tunnel-vpn";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		6FF0EF312A0DDDC700BD5145 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = tunnelVPN/tunnelVPN.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = 6D9BQ629VP;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = tunnelVPN/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = tunnelVPN;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.opentext.harris.tunnel-vpn.tunnelVPN";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "share/tunnelVPN-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		6FF0EF322A0DDDC700BD5145 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = tunnelVPN/tunnelVPN.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = 6D9BQ629VP;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = tunnelVPN/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = tunnelVPN;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.opentext.harris.tunnel-vpn.tunnelVPN";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "share/tunnelVPN-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
@@ -356,6 +715,15 @@
 			buildConfigurations = (
 				6FF0EF1C2A0DDC8900BD5145 /* Debug */,
 				6FF0EF1D2A0DDC8900BD5145 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		6FF0EF302A0DDDC700BD5145 /* Build configuration list for PBXNativeTarget "tunnelVPN" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6FF0EF312A0DDDC700BD5145 /* Debug */,
+				6FF0EF322A0DDDC700BD5145 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
