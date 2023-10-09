@@ -11,8 +11,6 @@
 		6F9464B12A85D2C200575DA5 /* NSData+HexString.m in Sources */ = {isa = PBXBuildFile; fileRef = 6F9464AE2A85D2C200575DA5 /* NSData+HexString.m */; };
 		6F9464F02A85F9C600575DA5 /* IPPacket.m in Sources */ = {isa = PBXBuildFile; fileRef = 6F9464EF2A85F9C600575DA5 /* IPPacket.m */; };
 		6F9464F12A85F9C600575DA5 /* IPPacket.m in Sources */ = {isa = PBXBuildFile; fileRef = 6F9464EF2A85F9C600575DA5 /* IPPacket.m */; };
-		6FEE7D0D2A6E580D0039A658 /* IPConstant.m in Sources */ = {isa = PBXBuildFile; fileRef = 6FEE7D0A2A6E580C0039A658 /* IPConstant.m */; };
-		6FEE7D0E2A6E580D0039A658 /* IPConstant.m in Sources */ = {isa = PBXBuildFile; fileRef = 6FEE7D0A2A6E580C0039A658 /* IPConstant.m */; };
 		6FF0EF072A0DDC8700BD5145 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 6FF0EF062A0DDC8700BD5145 /* AppDelegate.m */; };
 		6FF0EF0A2A0DDC8700BD5145 /* SceneDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 6FF0EF092A0DDC8700BD5145 /* SceneDelegate.m */; };
 		6FF0EF0D2A0DDC8700BD5145 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 6FF0EF0C2A0DDC8700BD5145 /* ViewController.m */; };
@@ -79,8 +77,6 @@
 		6F9464AF2A85D2C200575DA5 /* NSData+HexString.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSData+HexString.h"; sourceTree = "<group>"; };
 		6F9464EE2A85F9C600575DA5 /* IPPacket.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IPPacket.h; sourceTree = "<group>"; };
 		6F9464EF2A85F9C600575DA5 /* IPPacket.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IPPacket.m; sourceTree = "<group>"; };
-		6FEE7D0A2A6E580C0039A658 /* IPConstant.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = IPConstant.m; sourceTree = "<group>"; };
-		6FEE7D0B2A6E580C0039A658 /* IPConstant.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IPConstant.h; sourceTree = "<group>"; };
 		6FF0EF022A0DDC8700BD5145 /* tunnel_vpn.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = tunnel_vpn.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6FF0EF052A0DDC8700BD5145 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		6FF0EF062A0DDC8700BD5145 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -213,8 +209,6 @@
 				6F9464EF2A85F9C600575DA5 /* IPPacket.m */,
 				6F9464AF2A85D2C200575DA5 /* NSData+HexString.h */,
 				6F9464AE2A85D2C200575DA5 /* NSData+HexString.m */,
-				6FEE7D0B2A6E580C0039A658 /* IPConstant.h */,
-				6FEE7D0A2A6E580C0039A658 /* IPConstant.m */,
 				6FF0EF372A0E07BA00BD5145 /* CocoaAsyncSocket */,
 			);
 			path = share;
@@ -400,7 +394,6 @@
 				6F9464F02A85F9C600575DA5 /* IPPacket.m in Sources */,
 				6FF0EF182A0DDC8900BD5145 /* main.m in Sources */,
 				6FF0EF652A0E07BA00BD5145 /* DDMultiFormatter.m in Sources */,
-				6FEE7D0D2A6E580D0039A658 /* IPConstant.m in Sources */,
 				6F9464B02A85D2C200575DA5 /* NSData+HexString.m in Sources */,
 				6FF0EF6B2A0E07BA00BD5145 /* DDAbstractDatabaseLogger.m in Sources */,
 				6FF0EF632A0E07BA00BD5145 /* DDDispatchQueueLogFormatter.m in Sources */,
@@ -426,7 +419,6 @@
 				6FF0EF6A2A0E07BA00BD5145 /* DDLog.m in Sources */,
 				6FF0EF2A2A0DDDC700BD5145 /* PacketTunnelProvider.m in Sources */,
 				6FF0EF602A0E07BA00BD5145 /* DDASLLogger.m in Sources */,
-				6FEE7D0E2A6E580D0039A658 /* IPConstant.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -8,9 +8,7 @@
 #import "ViewController.h"
 #import <NetworkExtension/NetworkExtension.h>
 #import "GCDAsyncSocket.h"
-#import "GCDAsyncUdpSocket.h"
 #import "NSData+HexString.h"
-#import "IPPacket.h"
 
 #define EXTENSION_BUNDLE_ID @"com.opentext.harris.tunnel-vpn.tunnelVPN"
 #define HOST @"127.0.0.1"
@@ -18,15 +16,15 @@
 
 static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
 
-@interface ViewController ()<GCDAsyncSocketDelegate, GCDAsyncUdpSocketDelegate>
+@interface ViewController ()<GCDAsyncSocketDelegate>
 @property (nonatomic, strong) NETunnelProviderManager * manager;
 @property (nonatomic, strong) GCDAsyncSocket *socket;
-@property (nonatomic, strong) GCDAsyncUdpSocket *udpSocket;
+//@property (nonatomic, strong) GCDAsyncUdpSocket *udpSocket;
+
 
 @property (nonatomic, strong) dispatch_queue_t socketQueue;
 @property (nonatomic, strong) NSMutableArray<GCDAsyncSocket *> *clientSockets;
 @property (nonatomic, assign) BOOL isRunning;
-@property (readonly, nonatomic) uint16_t port;
 @end
 
 @implementation ViewController
@@ -36,10 +34,10 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
     dispatch_queue_attr_t queueAttributes = dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL, QOS_CLASS_UTILITY, 0);
     self.socketQueue = dispatch_queue_create(QUEUE_NAME, queueAttributes);
     [NETunnelProviderManager loadAllFromPreferencesWithCompletionHandler:^(NSArray<NETunnelProviderManager *> * _Nullable managers, NSError * _Nullable error) {
-//        if (error) {
-//            NSLog(@"load preferences error: %@", error.localizedFailureReason);
-//            return;
-//        }
+        if (error) {
+            NSLog(@"load preferences error: %@", error.localizedFailureReason);
+            return;
+        }
         if (managers == nil || managers.count == 0) {
             [self configureManager];
         } else {
@@ -47,6 +45,7 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
                 NETunnelProviderProtocol * pro = (NETunnelProviderProtocol *)tunnelProviderManager.protocolConfiguration;
                 if ([pro.providerBundleIdentifier isEqualToString:EXTENSION_BUNDLE_ID]) {
                     self.manager = tunnelProviderManager;
+                    [self startServer];
                     break;
                 }
             }
@@ -77,59 +76,38 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
                     NSLog(@"load error: %@", error.localizedDescription);
                     return;
                 }
-//                [self startUDP];
+                [self startServer];
             }];
         }
     }];
 }
 
-//#pragma --mark UDP Server
-//- (void)startServer {
-//    self.socket = [[GCDAsyncSocket alloc] initWithDelegate:self delegateQueue:self.socketQueue];
-//    self.clientSockets = [[NSMutableArray alloc] initWithCapacity:1];
-//    NSError * error = nil;
-//    [self.socket acceptOnPort:[PORT intValue] error:&error];
-//    if (error) {
-//        NSLog(@"start vpn server error: %@", error.localizedDescription);
-//    } else {
-//        NSLog(@"start vpn server success......");
-//    }
-//}
-
-//- (void)stopServer {
-//    for (GCDAsyncSocket *sock in self.clientSockets) {
-//        [sock disconnectAfterWriting];
-//    }
-//    [self.socket disconnect];
-//    [self.socket setDelegate:nil];
-//    self.socket = nil;
-//    [self.clientSockets removeAllObjects];
-//}
-
-
-- (IBAction)startServer:(id)sender {
-    if (self.isRunning) {
-        return;
+- (void)startServer {
+    self.socket = [[GCDAsyncSocket alloc] initWithDelegate:self delegateQueue:self.socketQueue];
+    self.clientSockets = [[NSMutableArray alloc] initWithCapacity:1];
+    NSError * error = nil;
+    [self.socket acceptOnPort:[PORT intValue] error:&error];
+    if (error) {
+        NSLog(@"start vpn server error: %@", error.localizedDescription);
     } else {
-        self.udpSocket = [[GCDAsyncUdpSocket alloc] initWithDelegate:self delegateQueue:self.socketQueue];
-        NSError * error = nil;
-        
-        int port = [PORT intValue];
-        if (![self.udpSocket bindToPort:port error:&error]) {
-            NSLog(@"bind port error....");
-            return;
-        }
-        if (![self.udpSocket beginReceiving:&error]) {
-            NSLog(@"beginReceiving error...");
-            return;
-        }
-        NSLog(@"jsp---- start udp server success !!!");
-        self.isRunning = YES;
+        NSLog(@"start vpn server success......");
     }
+}
+
+- (void)stopServer {
+    for (GCDAsyncSocket *sock in self.clientSockets) {
+        [sock disconnectAfterWriting];
+    }
+    [self.socket disconnect];
+    [self.socket setDelegate:nil];
+    self.socket = nil;
+    [self.clientSockets removeAllObjects];
 }
 
 
 
+
+/*
 #pragma --mark UDP Server
 - (void)startUDP {
     if (self.isRunning) {
@@ -162,6 +140,7 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
     self.udpSocket = nil;
     [self.clientSockets removeAllObjects];
 }
+ */
 
 
 #pragma --mark VPN
@@ -185,7 +164,7 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
 }
 
 - (void)stopVPN {
-    [self stopUDP];
+    [self stopServer];
     [self.manager.connection stopVPNTunnel];
 }
 
@@ -213,82 +192,72 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
     }
 }
 
-//- (NSMutableArray *)getCorrectPacket:(NSData *)data {
-//    NSInteger totalLength = data.length;
-//    if (totalLength == 0) {
-//        return nil;
-//    }
-//
-//    NSInteger offset = 0;
-//    NSMutableArray * arr = [NSMutableArray array];
-//    while (offset < totalLength) {
-//        NSData * temp = [data subdataWithRange:NSMakeRange(2 + offset, 2)];
-//        unsigned result = 0;
-//        NSScanner *scanner = [NSScanner scannerWithString:[temp hexString]];
-//        [scanner scanHexInt:&result];
-//        NSData * ele = [data subdataWithRange:NSMakeRange(offset, result)];
-//        [arr addObject:ele];
-//        offset += result;
-//    }
-//    return arr;
-//}
 
-
-//- (void)socket:(GCDAsyncSocket *)sock didReadData:(NSData *)data withTag:(long)tag {
-//    NSLog(@"**%@", [data hexString]);
-//    NSMutableArray * res = [self getCorrectPacket:data];
-//    for (NSData *obj in res) {
-//        NSLog(@"==%@", [obj hexString]);
-//        [sock writeData:data withTimeout:-1 tag:tag];
-//    }
-//    [sock writeData:data withTimeout:-1 tag:tag];
-    // call this to continue read data from client.
-//    [sock readDataWithTimeout:-1 tag:100];
-//}
-
-//- (void)socket:(GCDAsyncSocket *)sock didWriteDataWithTag:(long)tag {
-//    NSLog(@"%@ didWriteDataWithTag: %d", sock, tag);
-//}
-
-
-
-
-//- (void)socket:(GCDAsyncSocket *)sock didAcceptNewSocket:(GCDAsyncSocket *)newSocket
-//{
-//    NSLog(@"new socket connect: %@", newSocket);
-//    // in current logic, we should ensure connector connects with server first, so
-//    // the first object in self.clientSockets should be connector client.
-//    // This method is executed on the socketQueue (not the main thread)
-//    @synchronized(self.clientSockets) {
-//        [self.clientSockets addObject:newSocket];
-//        [newSocket readDataWithTimeout:-1 tag:100];
-//    }
-//}
-
-//- (void)socketDidDisconnect:(GCDAsyncSocket *)sock withError:(NSError *)err {
-//    NSLog(@"sock %@ disconnect...", sock);
-//    if (err) {
-//        NSLog(@"DidDisconnect error: %@", err.localizedDescription);
-//    } else if (sock != self.socket) {
-//        @synchronized(self.clientSockets) {
-//            [self.clientSockets removeObject:sock];
-//        }
-//    }
-//}
-
-
-#pragma mark --UDP delegate
-- (void)udpSocket:(GCDAsyncUdpSocket *)sock didReceiveData:(NSData *)data
-                                               fromAddress:(NSData *)address
-                                         withFilterContext:(id)filterContext
-{
-    if (!self.isRunning) {
-        return;
+- (NSMutableArray *)getCorrectPacket:(NSData *)data {
+    NSInteger totalLength = data.length;
+    if (totalLength == 0) {
+        return nil;
     }
-    NSLog(@"jsp--- server receive data: %@", [data hexString]);
-    //send the data to connector, and receive the response from the connector.
-    [self.udpSocket sendData:data toAddress:address withTimeout:-1 tag:0];
+
+    NSInteger offset = 0;
+    NSMutableArray * arr = [NSMutableArray array];
+    while (offset < totalLength) {
+        NSData * temp = [data subdataWithRange:NSMakeRange(2 + offset, 2)];
+        unsigned result = 0;
+        NSScanner *scanner = [NSScanner scannerWithString:[temp hexString]];
+        [scanner scanHexInt:&result];
+        NSData * ele = [data subdataWithRange:NSMakeRange(offset, result)];
+        [arr addObject:ele];
+        offset += result;
+    }
+    return arr;
 }
 
+
+- (void)socket:(GCDAsyncSocket *)sock didReadData:(NSData *)data withTag:(long)tag {
+    if (self.clientSockets.count < 2) {
+        [sock readDataWithTimeout:-1 tag:100];
+    } else {
+        GCDAsyncSocket * vpnSocket = self.clientSockets[0];
+        GCDAsyncSocket * connectorSocket = self.clientSockets[1];
+        if ([sock isEqual:vpnSocket]) {
+            NSLog(@"%lu, receive from vpnSocket: %@", data.length, data);
+            NSMutableArray * res = [self getCorrectPacket:data];
+            for (NSData *obj in res) {
+                [connectorSocket writeData:obj withTimeout:-1 tag:tag];
+            }
+            [sock readDataWithTimeout:-1 tag:100];
+        } else {
+            NSLog(@"%lu, receive from connectorSocket: %@", data.length, data);
+            NSMutableArray * res = [self getCorrectPacket:data];
+            for (NSData *obj in res) {
+                [vpnSocket writeData:obj withTimeout:-1 tag:tag];
+            }
+            [sock readDataWithTimeout:-1 tag:100];
+        }
+    }
+}
+
+- (void)socket:(GCDAsyncSocket *)sock didAcceptNewSocket:(GCDAsyncSocket *)newSocket
+{
+    NSLog(@"new socket connect: %@", newSocket);
+    // in current logic, we should ensure connector connects with server first, so
+    // the first object in self.clientSockets should be connector client.
+    // This method is executed on the socketQueue (not the main thread)
+    @synchronized(self.clientSockets) {
+        [self.clientSockets addObject:newSocket];
+        [newSocket readDataWithTimeout:-1 tag:100];
+    }
+}
+
+- (void)socketDidDisconnect:(GCDAsyncSocket *)sock withError:(NSError *)err {
+    if (err) {
+        NSLog(@"DidDisconnect error: %@", err.localizedDescription);
+    } else if (sock != self.socket) {
+        @synchronized(self.clientSockets) {
+            [self.clientSockets removeObject:sock];
+        }
+    }
+}
 
 @end

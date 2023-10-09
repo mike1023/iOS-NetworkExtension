@@ -7,9 +7,7 @@
 
 #import "PacketTunnelProvider.h"
 #import "GCDAsyncSocket.h"
-#import "IPPacket.h"
 #import "NSData+HexString.h"
-
 
 
 @interface PacketTunnelProvider ()<GCDAsyncSocketDelegate>
@@ -21,11 +19,9 @@
 @property (nonatomic, strong) NSMutableArray<GCDAsyncSocket *> *clientSockets;
 @property (nonatomic, assign) BOOL isRunning;
 
-@property (nonatomic, strong) NWUDPSession * udpSession;
-@property (nonatomic, strong) NSMutableDictionary * udpSessionDict;
+//@property (nonatomic, strong) NWUDPSession * udpSession;
+//@property (nonatomic, strong) NSMutableDictionary * udpSessionDict;
 
-@property (nonatomic, strong) NSData * tempUDPPacket;
-@property (nonatomic, strong) NSData * tempTCPPacket;
 
 @end
 
@@ -35,28 +31,31 @@
     // Add code here to start the process of connecting the tunnel.
     [self getConfigurationInfo:self.protocolConfiguration];
     self.completionHandler = completionHandler;
-    [self setupUDPSession];
+//    [self setupUDPSession];
+//    [self setupTunnelNetwork];
+    [self setupSocketClient];
 }
 
 - (void)stopTunnelWithReason:(NEProviderStopReason)reason completionHandler:(void (^)(void))completionHandler {
     // Add code here to start the process of stopping the tunnel.
-    [self.udpSession cancel];
+//    [self.udpSession cancel];
     completionHandler();
 }
 
-//- (void)setupSocketClient {
-//    dispatch_queue_attr_t queueAttributes = dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL, QOS_CLASS_UTILITY, 0);
-//    self.socketQueue = dispatch_queue_create("tunnel.opentxt.queue", queueAttributes);
-//    self.socket = [[GCDAsyncSocket alloc] initWithDelegate:self delegateQueue:self.socketQueue];
-//    NSError * error = nil;
-//    [self.socket connectToHost:self.hostname onPort:self.port error:&error];
-//    if (error) {
-//        NSLog(@"error, client socket connect failed: %@", error.localizedDescription);
-//    } else {
-//        [self setupTunnelNetwork];
-//    }
-//}
+- (void)setupSocketClient {
+    dispatch_queue_attr_t queueAttributes = dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL, QOS_CLASS_UTILITY, 0);
+    self.socketQueue = dispatch_queue_create("tunnel.opentxt.queue", queueAttributes);
+    self.socket = [[GCDAsyncSocket alloc] initWithDelegate:self delegateQueue:self.socketQueue];
+    NSError * error = nil;
+    [self.socket connectToHost:self.hostname onPort:self.port error:&error];
+    if (error) {
+        NSLog(@"error, client socket connect failed: %@", error.localizedDescription);
+    } else {
+        [self setupTunnelNetwork];
+    }
+}
 
+/*
 - (void)setupUDPSession {
     dispatch_queue_attr_t queueAttributes = dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL, QOS_CLASS_UTILITY, 0);
     self.socketQueue = dispatch_queue_create("tunnel.opentxt.queue", queueAttributes);
@@ -91,6 +90,7 @@
         }
     }
 }
+ */
 
 
 
@@ -126,7 +126,6 @@
             NSLog(@"jsp--- error: %@", error.localizedDescription);
             weakSelf.completionHandler(error);
         } else {
-            NSLog(@"jsp--- completionHandler success");
             weakSelf.completionHandler(nil);
             [weakSelf readPackets];
         }
@@ -134,27 +133,18 @@
 }
 
 - (void)readPackets {
+    
     [self.packetFlow readPacketObjectsWithCompletionHandler:^(NSArray<NEPacket *> * _Nonnull packets) {
         [packets enumerateObjectsUsingBlock:^(NEPacket * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
             dispatch_async(self.socketQueue, ^{
-//                tcp socket write
-//                [self.socket writeData:obj.data withTimeout:-1 tag:100];
-                
-                [self.udpSession writeDatagram:obj.data completionHandler:^(NSError * _Nullable error) {
-                    if (error) {
-                        NSLog(@"jsp---- udp write data error:%@", error.localizedDescription);
-                    } else {
+                [self.socket writeData:obj.data withTimeout:-1 tag:0];
+//                [self.udpSession writeDatagram:obj.data completionHandler:^(NSError * _Nullable error) {
+//                    if (error) {
+//                        NSLog(@"jsp---- udp write data error:%@", error.localizedDescription);
+//                    } else {
 //                        NSLog(@"jsp---- udp write data: %@", obj.data);
-                    }
-                }];
-                
-                
-//                IPPacket * pkt = [[IPPacket alloc] initWithRawData:obj.data];
-//                if (pkt.header.transportProtocol == UDP) {
-//                    [self sendUDPPacket:pkt];
-//                } else if (pkt.header.transportProtocol == TCP) {
-//                    [self sendTCPPacket:pkt];
-//                }
+//                    }
+//                }];
             });
         }];
         [self readPackets];
@@ -249,43 +239,44 @@
 }
 
 
-//- (void)socket:(GCDAsyncSocket *)sock didConnectToHost:(NSString *)host port:(uint16_t)port {
-//    NSLog(@"socket connect success...");
-//    [sock readDataWithTimeout:-1 tag:100];
-//}
-//
-//- (void)socket:(GCDAsyncSocket *)sock didWriteDataWithTag:(long)tag {
-//
-//}
-//
-//- (void)socket:(GCDAsyncSocket *)sock didReadData:(NSData *)data withTag:(long)tag {
-//    NSMutableArray * arr = [self getCorrectPacket:data];
-//    for (NSData *obj in arr) {
-//        NSLog(@"receive data from server: %@", [obj hexString]);
-//    }
-//    // call this to continue read data from client.
-//    [sock readDataWithTimeout:-1 tag:100];
-//}
+- (void)socket:(GCDAsyncSocket *)sock didConnectToHost:(NSString *)host port:(uint16_t)port {
+    NSLog(@"socket connect success...");
+    [sock readDataWithTimeout:-1 tag:100];
+}
 
-//- (NSMutableArray *)getCorrectPacket:(NSData *)data {
-//    NSInteger totalLength = data.length;
-//    if (totalLength == 0) {
-//        return nil;
-//    }
-//
-//    NSInteger offset = 0;
-//    NSMutableArray * arr = [NSMutableArray array];
-//    while (offset < totalLength) {
-//        NSData * temp = [data subdataWithRange:NSMakeRange(2 + offset, 2)];
-//        unsigned result = 0;
-//        NSScanner *scanner = [NSScanner scannerWithString:[temp hexString]];
-//        [scanner scanHexInt:&result];
-//        NSData * ele = [data subdataWithRange:NSMakeRange(offset, result)];
-//        [arr addObject:ele];
-//        offset += result;
-//    }
-//    return arr;
-//}
+- (void)socket:(GCDAsyncSocket *)sock didWriteDataWithTag:(long)tag {
+
+}
+
+- (void)socket:(GCDAsyncSocket *)sock didReadData:(NSData *)data withTag:(long)tag {
+    NSMutableArray * arr = [self getCorrectPacket:data];
+    for (NSData *obj in arr) {
+        NSLog(@"receive data from device server: %@", [obj hexString]);
+        [self.packetFlow writePackets:@[obj] withProtocols:@[@AF_INET]];
+    }
+    // call this to continue read data from server.
+    [sock readDataWithTimeout:-1 tag:100];
+}
+
+- (NSMutableArray *)getCorrectPacket:(NSData *)data {
+    NSInteger totalLength = data.length;
+    if (totalLength == 0) {
+        return nil;
+    }
+
+    NSInteger offset = 0;
+    NSMutableArray * arr = [NSMutableArray array];
+    while (offset < totalLength) {
+        NSData * temp = [data subdataWithRange:NSMakeRange(2 + offset, 2)];
+        unsigned result = 0;
+        NSScanner *scanner = [NSScanner scannerWithString:[temp hexString]];
+        [scanner scanHexInt:&result];
+        NSData * ele = [data subdataWithRange:NSMakeRange(offset, result)];
+        [arr addObject:ele];
+        offset += result;
+    }
+    return arr;
+}
 
 
 - (void)handleAppMessage:(NSData *)messageData completionHandler:(void (^)(NSData *))completionHandler {
@@ -300,9 +291,5 @@
 - (void)wake {
     // Add code here to wake up.
 }
-
-
-
-
 
 @end
