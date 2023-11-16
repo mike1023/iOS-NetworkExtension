@@ -19,7 +19,6 @@
 		6FF0EF262A0DDDC600BD5145 /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6FF0EF252A0DDDC600BD5145 /* NetworkExtension.framework */; };
 		6FF0EF2A2A0DDDC700BD5145 /* PacketTunnelProvider.m in Sources */ = {isa = PBXBuildFile; fileRef = 6FF0EF292A0DDDC700BD5145 /* PacketTunnelProvider.m */; };
 		6FF0EF2F2A0DDDC700BD5145 /* tunnelVPN.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 6FF0EF232A0DDDC600BD5145 /* tunnelVPN.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		6FF0EF352A0DDE3900BD5145 /* Network.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6FF0EF342A0DDE3900BD5145 /* Network.framework */; };
 		6FF0EF552A0E07BA00BD5145 /* Documentation.html in Resources */ = {isa = PBXBuildFile; fileRef = 6FF0EF392A0E07BA00BD5145 /* Documentation.html */; };
 		6FF0EF562A0E07BA00BD5145 /* Documentation.html in Resources */ = {isa = PBXBuildFile; fileRef = 6FF0EF392A0E07BA00BD5145 /* Documentation.html */; };
 		6FF0EF572A0E07BA00BD5145 /* GCDAsyncUdpSocket.m in Sources */ = {isa = PBXBuildFile; fileRef = 6FF0EF3A2A0E07BA00BD5145 /* GCDAsyncUdpSocket.m */; };
@@ -71,6 +70,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		6F36BE812AFCA89B00F7EEA7 /* Packet.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Packet.h; path = ../../../Packet.h; sourceTree = "<group>"; };
 		6F9464AE2A85D2C200575DA5 /* NSData+HexString.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSData+HexString.m"; sourceTree = "<group>"; };
 		6F9464AF2A85D2C200575DA5 /* NSData+HexString.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSData+HexString.h"; sourceTree = "<group>"; };
 		6FF0EF022A0DDC8700BD5145 /* tunnel_vpn.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = tunnel_vpn.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -132,7 +132,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				6FF0EF262A0DDDC600BD5145 /* NetworkExtension.framework in Frameworks */,
-				6FF0EF352A0DDE3900BD5145 /* Network.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -192,6 +191,7 @@
 			children = (
 				6FF0EF282A0DDDC700BD5145 /* PacketTunnelProvider.h */,
 				6FF0EF292A0DDDC700BD5145 /* PacketTunnelProvider.m */,
+				6F36BE812AFCA89B00F7EEA7 /* Packet.h */,
 				6FF0EF2B2A0DDDC700BD5145 /* Info.plist */,
 				6FF0EF2C2A0DDDC700BD5145 /* tunnelVPN.entitlements */,
 			);
