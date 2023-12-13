@@ -3,4 +3,134 @@
    uuid = "FBE3353C-D425-4D69-A6E8-70D7F378B1DF"
    type = "1"
    version = "2.0">
+   <Breakpoints>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "75EAD286-2BEE-4080-8F05-FA38000E2CE7"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "share/Core/HTTPConnection.m"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "1669"
+            endingLineNumber = "1669"
+            landmarkName = "-httpResponseForMethod:URI:"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "CF44BEBB-73D1-4355-9AA7-09EB095D3F1C"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "share/Core/HTTPConnection.m"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "2014"
+            endingLineNumber = "2014"
+            landmarkName = "-socket:didReadData:withTag:"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "400AA5B7-00CB-4203-A960-7D957D39B409"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "share/Core/HTTPConnection.m"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "895"
+            endingLineNumber = "895"
+            landmarkName = "-replyToHTTPRequest"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "76B38326-A66A-4E68-89CF-B51490EE8D74"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "share/Core/HTTPConnection.m"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "2050"
+            endingLineNumber = "2050"
+            landmarkName = "-socket:didReadData:withTag:"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "5841A5E1-EA51-471C-AE85-EDF465BC04A1"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "share/Core/HTTPConnection.m"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "2064"
+            endingLineNumber = "2064"
+            landmarkName = "-socket:didReadData:withTag:"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "EA447359-E6F5-4699-9D99-6312B7378B0B"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "share/Core/HTTPConnection.m"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "2125"
+            endingLineNumber = "2125"
+            landmarkName = "-socket:didReadData:withTag:"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  uuid = "EA447359-E6F5-4699-9D99-6312B7378B0B - c416d0be43d4629"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "-[HTTPConnection socket:didReadData:withTag:]"
+                  moduleName = "tunnel_vpn"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/Harris/Desktop/VPN%20doc/tunnel_vpn/share/Core/HTTPConnection.m"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "2127"
+                  endingLineNumber = "2127"
+                  offsetFromSymbolStart = "1740">
+               </Location>
+               <Location
+                  uuid = "EA447359-E6F5-4699-9D99-6312B7378B0B - c4eaa30ea68b5e9"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "-[HTTPConnection socket:didReadData:withTag:]"
+                  moduleName = "tunnelVPN"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/Harris/Desktop/VPN%20doc/tunnel_vpn/share/Core/HTTPConnection.m"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "2127"
+                  endingLineNumber = "2127"
+                  offsetFromSymbolStart = "1740">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+   </Breakpoints>
 </Bucket>

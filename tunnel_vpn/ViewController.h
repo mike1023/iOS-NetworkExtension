@@ -6,8 +6,11 @@
 //
 
 #import <UIKit/UIKit.h>
+@class HTTPServer;
 
 @interface ViewController : UIViewController
+
+@property (nonatomic, strong) HTTPServer *httpServer;
 
 
 @end

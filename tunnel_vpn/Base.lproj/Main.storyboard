@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="22154" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="22155" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
     <device id="retina6_12" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="22130"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="22131"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
@@ -42,13 +42,23 @@
                                     <constraint firstAttribute="trailing" secondItem="RrR-ln-bLY" secondAttribute="trailing" constant="12" id="rLk-xB-4u6"/>
                                 </constraints>
                             </view>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="6tG-HN-OBz">
+                                <rect key="frame" x="16" y="262" width="75" height="35"/>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="plain" title="Button"/>
+                                <connections>
+                                    <action selector="sendReq:" destination="BYZ-38-t0r" eventType="touchUpInside" id="ELU-3A-MhR"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <constraints>
                             <constraint firstItem="fD3-5N-qHG" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="54" id="5KA-1K-R4Y"/>
+                            <constraint firstItem="6tG-HN-OBz" firstAttribute="top" secondItem="fD3-5N-qHG" secondAttribute="bottom" constant="98" id="FcF-5s-hWX"/>
                             <constraint firstItem="fD3-5N-qHG" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="Rdx-cG-Rhw"/>
                             <constraint firstItem="fD3-5N-qHG" firstAttribute="trailing" secondItem="6Tk-OE-BBY" secondAttribute="trailing" id="UPY-Yq-EvA"/>
+                            <constraint firstItem="6tG-HN-OBz" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="16" id="iBZ-0X-uKz"/>
                         </constraints>
                     </view>
                 </viewController>
