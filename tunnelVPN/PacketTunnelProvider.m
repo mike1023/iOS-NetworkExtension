@@ -42,8 +42,8 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
     self.routeIP = options[@"ip"];
     
     self.completionHandler = completionHandler;
-//    [self setupSocketClient];
-    [self setupTunnelNetwork];
+    [self setupSocketClient];
+//    [self setupTunnelNetwork];
 
 }
 
@@ -54,7 +54,7 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
 
 - (void)setupSocketClient {
     //ws://10.5.34.90/ws   ws://127.0.0.1:%d/vpn
-    NSString *urlString = [NSString stringWithFormat:@"ws://127.0.0.1:12355/vpn"];
+    NSString *urlString = [NSString stringWithFormat:@"ws://10.168.80.250:8080/ws1"];
     self.myWebSocket = [[hpSRWebSocket alloc] initWithURLRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:urlString]]];
     self.myWebSocket.delegate = self;
     [self.myWebSocket open];
@@ -74,14 +74,16 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
 
 - (void)setupTunnelNetwork {
     // configure TUN interface, it can capture IP packets.
-    NSString * ip = @"10.10.10.10";
-    NSString * subnetMask = @"255.255.255.0";
+    NSString * ip = @"10.0.0.1";
+    NSString * subnetMask = @"255.255.0.0";
     NEPacketTunnelNetworkSettings * settings = [[NEPacketTunnelNetworkSettings alloc] initWithTunnelRemoteAddress:@"127.0.0.1"];
 
     settings.MTU = @1500;
     NEIPv4Settings * ipv4Settings = [[NEIPv4Settings alloc] initWithAddresses:@[ip] subnetMasks:@[subnetMask]];
     NEIPv4Route * allowRoute = [[NEIPv4Route alloc] initWithDestinationAddress:self.routeIP subnetMask:subnetMask];
     NEIPv4Route * allowRoute1 = [[NEIPv4Route alloc] initWithDestinationAddress:@"1.1.1.1" subnetMask:subnetMask];
+
+//    NEIPv4Route * allowRoute1 = [[NEIPv4Route alloc] initWithDestinationAddress:@"192.168.31.1" subnetMask:subnetMask];
     ipv4Settings.includedRoutes = @[allowRoute, allowRoute1];
 //    ipv4Settings.includedRoutes = @[[NEIPv4Route defaultRoute]];
 //    ipv4Settings.excludedRoutes = @[
@@ -93,14 +95,15 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
     
     
     //ipv6 setting  https://www.jianshu.com/p/3db3a97510ab
-    NSString * ipv6 = @"fd12:1:1:1::2";
-    NEIPv6Settings * ipv6Settings = [[NEIPv6Settings alloc] initWithAddresses:@[ipv6] networkPrefixLengths:@[@128]];
-    NEIPv6Route * route = [[NEIPv6Route alloc] initWithDestinationAddress:@"::" networkPrefixLength:@1];
-    NEIPv6Route *route1 = [[NEIPv6Route alloc]initWithDestinationAddress:@"8000::" networkPrefixLength:@1];
-    ipv6Settings.includedRoutes = @[route, route1];
-    settings.IPv6Settings = ipv6Settings;
+//    NSString * ipv6 = @"fd12:1:1:1::2";
+//    NEIPv6Settings * ipv6Settings = [[NEIPv6Settings alloc] initWithAddresses:@[ipv6] networkPrefixLengths:@[@128]];
+//    NEIPv6Route * route = [[NEIPv6Route alloc] initWithDestinationAddress:@"::" networkPrefixLength:@1];
+//    NEIPv6Route *route1 = [[NEIPv6Route alloc]initWithDestinationAddress:@"8000::" networkPrefixLength:@1];
+//    ipv6Settings.includedRoutes = @[route, route1];
+//    settings.IPv6Settings = ipv6Settings;
     
     //dns setting
+//    NEDNSSettings * dnsSettings = [[NEDNSSettings alloc] initWithServers:@[@"10.168.80.2"]];
     NEDNSSettings * dnsSettings = [[NEDNSSettings alloc] initWithServers:@[@"1.1.1.1"]];
     dnsSettings.matchDomains = @[self.domainName];
     dnsSettings.matchDomainsNoSearch = YES;
@@ -123,21 +126,11 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
     [self.packetFlow readPacketObjectsWithCompletionHandler:^(NSArray<NEPacket *> * _Nonnull packets) {
         [packets enumerateObjectsUsingBlock:^(NEPacket * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
             [self parsePacket:obj.data];
-//            Byte *byteArr = (Byte *)obj.data.bytes;
-//            NSUInteger ipVersion = [self getIPVersion:byteArr];
-//            [self.packetFlow writePackets:@[obj.data] withProtocols:@[ipVersion == 4 ? @(AF_INET) : @(AF_INET6)]];
+
+
+//            NSLog(@"jsp---- read from tun0: %@", obj.data.hexString);
+
             
-//            NSDictionary * dict = @{
-//                @"ip": @"1.2.3.4",
-//                @"data": obj.data.hexString
-//            };
-//            NSString * msg;
-//            NSData * data = [NSJSONSerialization dataWithJSONObject:dict options:NSJSONWritingPrettyPrinted error:nil];
-//            if (data) {
-//                msg = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-//            }
-//            [self.myWebSocket send:@"extension ----> device server"];
-//            [self.myWebSocket send:msg];
         }];
         [self readPackets];
     }];
@@ -154,26 +147,113 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
         TransportProtocol transProtocol = [self getTransProtocol:byteArr];
         NSLog(@"jsp---- transprotocol: %d", transProtocol);
         if (transProtocol == TCP) {
-            Byte flag = byteArr[33];
-            // we could simulate TCP handshake packets
-            // 1. client send  [SYN]
-            // 2. response [SYN, ACK]
-            // 3. client send [ACK]
-            if (flag == 0x02) { // SYN
-                NSLog(@"jsp--------SYN");
-                [self generateSYNACK:byteArr];
-            } else if (flag == 0x10) { // [ACK]:
-                NSLog(@"jsp--------ACK");
-                
-            } else if (flag == 0x11) { // [FIN, ACK]
-                NSLog(@"jsp------ [FIN, ACK]");
-                //1. client send [FIN, ACK]
-                //2. server reponse a [ACK] packet
-                [self generateACKPacket:byteArr];
-                //3. server send [FIN, ACK]
-//                [self generateFINACKPacket:byteArr];
-                //4. client send  [ACK]
+            // get des IP
+            NSArray * arr = [self.routeIP componentsSeparatedByString:@"."];
+            
+            if (byteArr[16] == [arr[0] intValue] && byteArr[17] == [arr[1] intValue] &&
+                byteArr[18] == [arr[2] intValue] && byteArr[19] == [arr[3] intValue]) {
+                NSLog(@"jsp---------------  oooooooooooooo");
+                NSDictionary * dict = @{
+                    @"ip": @"1.2.3.4",
+                    @"data": packet.hexString
+                };
+                NSString * msg;
+                NSData * data = [NSJSONSerialization dataWithJSONObject:dict options:NSJSONWritingPrettyPrinted error:nil];
+                if (data) {
+                    msg = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+                }
+                [self.myWebSocket send:msg];
             }
+
+//            [self.packetFlow writePackets:@[packet] withProtocols:@[@AF_INET]];
+//            NSLog(@"jsp---------- 11111");
+//            NSString * desIP = @"127.0.0.1";
+//            UInt16 len = [self getTotalLength:byteArr];
+//            int ipHeaderLen = [self getIPHeaderLength:byteArr];
+//            
+//            NSMutableArray * resIP = [NSMutableArray array];
+//            for (int i = 0; i < ipHeaderLen; i++) {
+//                resIP[i] = [NSNumber numberWithUnsignedChar:byteArr[i]];
+//            }
+//            // replace desIP to "127.0.0.1"
+//            resIP[16] = @(127);
+//            resIP[17] = @(0);
+//            resIP[18] = @(0);
+//            resIP[19] = @(1);
+//            // reset checksum
+//            resIP[10] = @(0x00);
+//            resIP[11] = @(0x00);
+//            
+//            uint16_t ipCheckSum = [self calculateCheckSum:resIP];
+//            Byte ipCheckSum1 = (ipCheckSum >> 8) & 0xff;
+//            Byte ipCheckSum2 = ipCheckSum & 0xff;
+//            
+//            resIP[10] = @(ipCheckSum1);
+//            resIP[11] = @(ipCheckSum2);
+//            
+//            NSMutableArray * resTCP = [NSMutableArray array];
+//            NSUInteger tcpLen = len - ipHeaderLen;
+//            Byte tcpLen1 = (tcpLen >> 8) & 0xff;
+//            Byte tcpLen2 = tcpLen & 0xff;
+//            
+//            for (int i = 0; i < tcpLen; i++) {
+//                resTCP[i] = [NSNumber numberWithUnsignedChar:byteArr[ipHeaderLen + i]];
+//            }
+//            
+//            NSMutableArray * tempArr = [NSMutableArray array];
+//            NSArray * fakeTCPHeader = @[
+//                @(0x0a), @(0x0a), @(0x0a), @(0x0a),
+//                @(127), @(0), @(0), @(1),
+//                @(0x00), @(0x06), @(tcpLen1), @(tcpLen2)
+//            ];
+//            [tempArr addObjectsFromArray:fakeTCPHeader];
+//            resTCP[16] = @(0x00);
+//            resTCP[17] = @(0x00);
+//            
+//            
+//            [tempArr addObjectsFromArray:resTCP];
+//            
+//            uint16_t res = [self calculateCheckSum:tempArr];
+//            Byte tcpChecksum1 = (res >> 8) & 0xff;
+//            Byte tcpChecksum2 = res & 0xff;
+//            
+//            // replace checksum field
+//            resTCP[16] = @(tcpChecksum1);
+//            resTCP[17] = @(tcpChecksum2);
+//            
+//            [tempArr removeAllObjects];
+//            [tempArr addObjectsFromArray:resIP];
+//            [tempArr addObjectsFromArray:resTCP];
+//            
+//            NSUInteger n = tempArr.count;
+//            Byte reveive[n];
+//            for (int i = 0; i < n; i++) {
+//                reveive[i] = [tempArr[i] unsignedCharValue];
+//            }
+//            NSData * data = [NSData dataWithBytes:reveive length:sizeof(reveive)];
+//            NSLog(@"jsp------ send to tun0: %@", data.hexString);
+//            [self.packetFlow writePackets:@[data] withProtocols:@[@AF_INET]];
+            
+//            Byte flag = byteArr[33];
+//            // we could simulate TCP handshake packets
+//            // 1. client send  [SYN]
+//            // 2. response [SYN, ACK]
+//            // 3. client send [ACK]
+//            if (flag == 0x02) { // SYN
+//                NSLog(@"jsp--------SYN");
+//                [self generateSYNACK:byteArr];
+//            } else if (flag == 0x10) { // [ACK]:
+//                NSLog(@"jsp--------ACK");
+//                
+//            } else if (flag == 0x11) { // [FIN, ACK]
+//                NSLog(@"jsp------ [FIN, ACK]");
+//                //1. client send [FIN, ACK]
+//                //2. server reponse a [ACK] packet
+//                [self generateACKPacket:byteArr];
+//                //3. server send [FIN, ACK]
+////                [self generateFINACKPacket:byteArr];
+//                //4. client send  [ACK]
+//            }
         } else if (transProtocol == UDP) {
             // 2. destination port: generally, 53 is for DNS query
             UInt16 desPort = [self getDestinationPort:byteArr];
@@ -620,8 +700,8 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
     Byte tcpChecksum2 = res & 0xff;
     
     // replace checksum field
-    [resTCP replaceObjectAtIndex:16 withObject:@(tcpChecksum1)];
-    [resTCP replaceObjectAtIndex:17 withObject:@(tcpChecksum2)];
+    resTCP[16] = @(tcpChecksum1);
+    resTCP[17] = @(tcpChecksum2);
     
     [resIP addObjectsFromArray:resTCP];
     [resIP addObjectsFromArray:opt];
@@ -820,6 +900,7 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
 
 - (void)webSocketDidOpen:(hpSRWebSocket *)webSocket {
     NSLog(@"jsp------ didopen");
+//    [self.myWebSocket send:@"sssss"];
     [self setupTunnelNetwork];
 }
 
@@ -832,7 +913,9 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
 }
 
 - (void)webSocket:(hpSRWebSocket *)webSocket didReceiveMessage:(id)message {
-    NSLog(@"jsp----- receive message: %@", message);
+    NSData * data = (NSData *)message;
+    NSLog(@"jsp----- receive message: %@", data.hexString);
+    [self.packetFlow writePackets:@[data] withProtocols:@[@AF_INET]];
 }
 
 

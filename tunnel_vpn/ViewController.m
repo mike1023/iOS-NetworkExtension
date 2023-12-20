@@ -16,25 +16,25 @@
 
 #define EXTENSION_BUNDLE_ID @"com.opentext.harris.tunnel-vpn.tunnelVPN"
 #define HOST @"127.0.0.1"
-#define PORT @"12344"
+#define PORT @"80"
 
-//static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
+static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
 
 @interface ViewController ()<GCDAsyncSocketDelegate>
 @property (nonatomic, strong) NETunnelProviderManager * manager;
 
 //@property (nonatomic, strong) hpSRWebSocket * myWebSocket;
-//@property (nonatomic, strong) GCDAsyncSocket *socket;
-//@property (nonatomic, strong) dispatch_queue_t socketQueue;
-//@property (nonatomic, strong) NSMutableArray<GCDAsyncSocket *> *clientSockets;
+@property (nonatomic, strong) GCDAsyncSocket *socket;
+@property (nonatomic, strong) dispatch_queue_t socketQueue;
+@property (nonatomic, strong) NSMutableArray<GCDAsyncSocket *> *clientSockets;
 @end
 
 @implementation ViewController
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-//    dispatch_queue_attr_t queueAttributes = dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL, QOS_CLASS_UTILITY, 0);
-//    self.socketQueue = dispatch_queue_create(QUEUE_NAME, queueAttributes);
+    dispatch_queue_attr_t queueAttributes = dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL, QOS_CLASS_UTILITY, 0);
+    self.socketQueue = dispatch_queue_create(QUEUE_NAME, queueAttributes);
     [NETunnelProviderManager loadAllFromPreferencesWithCompletionHandler:^(NSArray<NETunnelProviderManager *> * _Nullable managers, NSError * _Nullable error) {
         if (error) {
             NSLog(@"load preferences error: %@", error.localizedFailureReason);
@@ -47,7 +47,8 @@
                 NETunnelProviderProtocol * pro = (NETunnelProviderProtocol *)tunnelProviderManager.protocolConfiguration;
                 if ([pro.providerBundleIdentifier isEqualToString:EXTENSION_BUNDLE_ID]) {
                     self.manager = tunnelProviderManager;
-                    [self startWSServer];
+//                    [self startWSServer];
+//                    [self startServer];
                     break;
                 }
             }
@@ -90,7 +91,8 @@
                     NSLog(@"load error: %@", error.localizedDescription);
                     return;
                 }
-                [self startWSServer];
+//                [self startWSServer];
+//                [self startServer];
             }];
         }
     }];
@@ -149,7 +151,7 @@
     // get params from job
     NSDictionary * params = @{
         @"name": @"opop.com",
-        @"ip": @"2.3.4.5"
+        @"ip": @"10.168.80.187"
     };
     [self.manager.connection startVPNTunnelWithOptions:params andReturnError:nil];
     if (error) {
@@ -248,6 +250,8 @@
 //}
 
 //- (void)socket:(GCDAsyncSocket *)sock didReadData:(NSData *)data withTag:(long)tag {
+//    NSLog(@"jsp---------- %@", data);
+//    [sock readDataWithTimeout:-1 tag:tag];
 //    if (self.clientSockets.count < 2) {
 //        [sock readDataWithTimeout:-1 tag:100];
 //    } else {
@@ -270,7 +274,7 @@
 //        }
 //    }
 //}
-//
+
 //- (void)socket:(GCDAsyncSocket *)sock didAcceptNewSocket:(GCDAsyncSocket *)newSocket
 //{
 //    NSLog(@"new socket connect: %@", newSocket);
