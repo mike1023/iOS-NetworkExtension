@@ -16,7 +16,7 @@
 
 #define EXTENSION_BUNDLE_ID @"com.opentext.harris.tunnel-vpn.tunnelVPN"
 #define HOST @"127.0.0.1"
-#define PORT @"80"
+#define PORT @"12355"
 
 static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
 
@@ -48,7 +48,7 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
                 if ([pro.providerBundleIdentifier isEqualToString:EXTENSION_BUNDLE_ID]) {
                     self.manager = tunnelProviderManager;
 //                    [self startWSServer];
-//                    [self startServer];
+                    [self startServer];
                     break;
                 }
             }
@@ -57,16 +57,6 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
     [[NSNotificationCenter defaultCenter] addObserverForName:NEVPNStatusDidChangeNotification object:self.manager.connection queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification * _Nonnull note) {
         [self updateVPNStatus];
     }];
-}
-
-- (IBAction)sendReq:(id)sender {
-    NSURL * url = [NSURL URLWithString:@"https://www.baidu.com"];
-    NSURLRequest * req = [NSURLRequest requestWithURL:url];
-    NSURLSession * session = [NSURLSession sharedSession];
-    NSURLSessionDataTask * task = [session dataTaskWithRequest:req completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
-        NSLog(@"jsp----- %@", data);
-    }];
-    [task resume];
 }
 
 
@@ -92,10 +82,23 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
                     return;
                 }
 //                [self startWSServer];
-//                [self startServer];
+                [self startServer];
             }];
         }
     }];
+}
+
+
+- (void)startServer {
+    self.socket = [[GCDAsyncSocket alloc] initWithDelegate:self delegateQueue:self.socketQueue];
+    self.clientSockets = [[NSMutableArray alloc] initWithCapacity:1];
+    NSError * error = nil;
+    [self.socket acceptOnPort:[PORT intValue] error:&error];
+    if (error) {
+        NSLog(@"start TCP socket server error: %@", error.localizedDescription);
+    } else {
+        NSLog(@"start TCP socket server success......");
+    }
 }
 
 - (void)startWSServer {
@@ -116,23 +119,6 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
 //    });
 }
 
-//- (IBAction)sendRequest:(id)sender {
-//    NSURLSession * session = [NSURLSession sharedSession];
-//    NSString * str = @"http://127.0.0.1:12355/test";
-//    NSURL * url = [NSURL URLWithString:str];
-//    NSMutableURLRequest * req = [NSMutableURLRequest requestWithURL:url];
-//    [req setHTTPMethod:@"POST"];
-//    [req setHTTPBody:[@"hello" dataUsingEncoding:NSUTF8StringEncoding]];
-//    NSURLSessionDataTask * task = [session dataTaskWithRequest:req completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
-//        if (error) {
-//            NSLog(@"jsp---- error: %@", error.localizedFailureReason);
-//        } else {
-//            NSString *responseString = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-//            NSLog(@"Response: %@", responseString);
-//        }
-//    }];
-//    [task resume];
-//}
 
 
 
@@ -150,8 +136,8 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
     NSError * error = nil;
     // get params from job
     NSDictionary * params = @{
-        @"name": @"opop.com",
-        @"ip": @"10.168.80.187"
+        @"name": @"opopa.com",
+        @"ip": @"10.5.33.6"
     };
     [self.manager.connection startVPNTunnelWithOptions:params andReturnError:nil];
     if (error) {
@@ -207,17 +193,6 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
 //    NSLog(@"jsp----- receive message: %@", message);
 //}
 
-//- (void)startServer {
-//    self.socket = [[GCDAsyncSocket alloc] initWithDelegate:self delegateQueue:self.socketQueue];
-//    self.clientSockets = [[NSMutableArray alloc] initWithCapacity:1];
-//    NSError * error = nil;
-//    [self.socket acceptOnPort:[PORT intValue] error:&error];
-//    if (error) {
-//        NSLog(@"start vpn server error: %@", error.localizedDescription);
-//    } else {
-//        NSLog(@"start vpn server success......");
-//    }
-//}
 
 //- (void)stopServer {
 //    for (GCDAsyncSocket *sock in self.clientSockets) {
@@ -249,8 +224,9 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
 //    return arr;
 //}
 
-//- (void)socket:(GCDAsyncSocket *)sock didReadData:(NSData *)data withTag:(long)tag {
-//    NSLog(@"jsp---------- %@", data);
+- (void)socket:(GCDAsyncSocket *)sock didReadData:(NSData *)data withTag:(long)tag {
+    NSLog(@"jsp---------- %@", [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
+    
 //    [sock readDataWithTimeout:-1 tag:tag];
 //    if (self.clientSockets.count < 2) {
 //        [sock readDataWithTimeout:-1 tag:100];
@@ -273,29 +249,33 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
 //            [sock readDataWithTimeout:-1 tag:100];
 //        }
 //    }
-//}
+}
 
-//- (void)socket:(GCDAsyncSocket *)sock didAcceptNewSocket:(GCDAsyncSocket *)newSocket
-//{
-//    NSLog(@"new socket connect: %@", newSocket);
-//    // in current logic, we should ensure connector connects with server first, so
-//    // the first object in self.clientSockets should be connector client.
-//    // This method is executed on the socketQueue (not the main thread)
-//    @synchronized(self.clientSockets) {
-//        [self.clientSockets addObject:newSocket];
-//        [newSocket readDataWithTimeout:-1 tag:100];
-//    }
-//}
-//
-//- (void)socketDidDisconnect:(GCDAsyncSocket *)sock withError:(NSError *)err {
-//    if (err) {
-//        NSLog(@"DidDisconnect error: %@", err.localizedDescription);
-//    } else if (sock != self.socket) {
-//        @synchronized(self.clientSockets) {
-//            [self.clientSockets removeObject:sock];
-//        }
-//    }
-//}
+- (void)socket:(GCDAsyncSocket *)sock didWriteDataWithTag:(long)tag {
+    
+}
+
+- (void)socket:(GCDAsyncSocket *)sock didAcceptNewSocket:(GCDAsyncSocket *)newSocket
+{
+    NSLog(@"new socket connect: %@", newSocket);
+    // in current logic, we should ensure connector connects with server first, so
+    // the first object in self.clientSockets should be connector client.
+    // This method is executed on the socketQueue (not the main thread)
+    @synchronized(self.clientSockets) {
+        [self.clientSockets addObject:newSocket];
+        [newSocket readDataWithTimeout:-1 tag:100];
+    }
+}
+
+- (void)socketDidDisconnect:(GCDAsyncSocket *)sock withError:(NSError *)err {
+    if (err) {
+        NSLog(@"DidDisconnect error: %@", err.localizedDescription);
+    } else if (sock != self.socket) {
+        @synchronized(self.clientSockets) {
+            [self.clientSockets removeObject:sock];
+        }
+    }
+}
 
 
 

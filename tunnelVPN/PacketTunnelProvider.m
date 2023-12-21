@@ -25,26 +25,37 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
 @property (nonatomic, copy) NSArray * domainArr;
 @property (nonatomic, strong) hpSRWebSocket * myWebSocket;
 
-//@property (nonatomic, copy) NSString * hostname;
-//@property (nonatomic, assign) uint16_t port;
-//@property (nonatomic, strong) GCDAsyncSocket *socket;
-//@property (nonatomic, strong) dispatch_queue_t socketQueue;
-//@property (nonatomic, strong) NSMutableArray<GCDAsyncSocket *> *clientSockets;
-//@property (nonatomic, assign) BOOL isRunning;
-
+@property (nonatomic, copy) NSString * hostname;
+@property (nonatomic, assign) uint16_t port;
+@property (nonatomic, strong) GCDAsyncSocket *socket;
+@property (nonatomic, strong) dispatch_queue_t socketQueue;
+@property (nonatomic, strong) NSMutableArray<GCDAsyncSocket *> *clientSockets;
+@property (nonatomic, assign) BOOL isRunning;
+@property (nonatomic, strong) NWTCPConnection * conn;
 @end
 
 @implementation PacketTunnelProvider
 
 - (void)startTunnelWithOptions:(NSDictionary *)options completionHandler:(void (^)(NSError *))completionHandler {
     // Add code here to start the process of connecting the tunnel.
+//    [self getConfigurationInfo:self.protocolConfiguration];
+    dispatch_queue_attr_t queueAttributes = dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL, QOS_CLASS_UTILITY, 0);
+    self.socketQueue = dispatch_queue_create("com.opentext.tunnel_vpn", queueAttributes);
     self.domainName = options[@"name"];
     self.routeIP = options[@"ip"];
     
     self.completionHandler = completionHandler;
-    [self setupSocketClient];
-//    [self setupTunnelNetwork];
+//    [self setupSocketClient];
+    [self setupTunnelNetwork];
 
+}
+
+- (void)getConfigurationInfo:(NEVPNProtocol *)configuration {
+    NETunnelProviderProtocol * providerProtocol = (NETunnelProviderProtocol *)configuration;
+    NSString * fullAddress = providerProtocol.serverAddress;
+    NSArray * addressArr = [fullAddress componentsSeparatedByString:@":"];
+    self.hostname = addressArr[0];
+    self.port = [addressArr[1] intValue];
 }
 
 - (void)stopTunnelWithReason:(NEProviderStopReason)reason completionHandler:(void (^)(void))completionHandler {
@@ -54,38 +65,35 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
 
 - (void)setupSocketClient {
     //ws://10.5.34.90/ws   ws://127.0.0.1:%d/vpn
-    NSString *urlString = [NSString stringWithFormat:@"ws://10.168.80.250:8080/ws1"];
-    self.myWebSocket = [[hpSRWebSocket alloc] initWithURLRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:urlString]]];
-    self.myWebSocket.delegate = self;
-    [self.myWebSocket open];
+//    NSString *urlString = [NSString stringWithFormat:@"ws://10.168.80.250:8080/ws1"];
+//    self.myWebSocket = [[hpSRWebSocket alloc] initWithURLRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:urlString]]];
+//    self.myWebSocket.delegate = self;
+//    [self.myWebSocket open];
     
-//    dispatch_queue_attr_t queueAttributes = dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL, QOS_CLASS_UTILITY, 0);
-//    self.socketQueue = dispatch_queue_create("tunnel.opentxt.queue", queueAttributes);
-//    self.socket = [[GCDAsyncSocket alloc] initWithDelegate:self delegateQueue:self.socketQueue];
-//    NSError * error = nil;
-//    [self.socket connectToHost:self.hostname onPort:self.port error:&error];
-//    if (error) {
-//        NSLog(@"error, client socket connect failed: %@", error.localizedDescription);
-//    } else {
-//        [self setupTunnelNetwork];
-//    }
+    dispatch_queue_attr_t queueAttributes = dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL, QOS_CLASS_UTILITY, 0);
+    self.socketQueue = dispatch_queue_create("tunnel.opentxt.queue", queueAttributes);
+    self.socket = [[GCDAsyncSocket alloc] initWithDelegate:self delegateQueue:self.socketQueue];
+    NSError * error = nil;
+    [self.socket connectToHost:self.hostname onPort:self.port error:&error];
+    if (error) {
+        NSLog(@"error, client socket connect failed: %@", error.localizedDescription);
+    } else {
+        [self setupTunnelNetwork];
+    }
 }
 
 
 - (void)setupTunnelNetwork {
     // configure TUN interface, it can capture IP packets.
-    NSString * ip = @"10.0.0.1";
-    NSString * subnetMask = @"255.255.0.0";
+    NSString * ip = @"10.10.10.10";
+    NSString * subnetMask = @"255.255.255.0";
     NEPacketTunnelNetworkSettings * settings = [[NEPacketTunnelNetworkSettings alloc] initWithTunnelRemoteAddress:@"127.0.0.1"];
 
     settings.MTU = @1500;
     NEIPv4Settings * ipv4Settings = [[NEIPv4Settings alloc] initWithAddresses:@[ip] subnetMasks:@[subnetMask]];
     NEIPv4Route * allowRoute = [[NEIPv4Route alloc] initWithDestinationAddress:self.routeIP subnetMask:subnetMask];
     NEIPv4Route * allowRoute1 = [[NEIPv4Route alloc] initWithDestinationAddress:@"1.1.1.1" subnetMask:subnetMask];
-
-//    NEIPv4Route * allowRoute1 = [[NEIPv4Route alloc] initWithDestinationAddress:@"192.168.31.1" subnetMask:subnetMask];
     ipv4Settings.includedRoutes = @[allowRoute, allowRoute1];
-//    ipv4Settings.includedRoutes = @[[NEIPv4Route defaultRoute]];
 //    ipv4Settings.excludedRoutes = @[
 //        [[NEIPv4Route alloc] initWithDestinationAddress:@"10.0.0.0" subnetMask:@"255.0.0.0"],
 //        [[NEIPv4Route alloc] initWithDestinationAddress:@"127.0.0.0" subnetMask:@"255.0.0.0"],
@@ -95,15 +103,14 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
     
     
     //ipv6 setting  https://www.jianshu.com/p/3db3a97510ab
-//    NSString * ipv6 = @"fd12:1:1:1::2";
-//    NEIPv6Settings * ipv6Settings = [[NEIPv6Settings alloc] initWithAddresses:@[ipv6] networkPrefixLengths:@[@128]];
-//    NEIPv6Route * route = [[NEIPv6Route alloc] initWithDestinationAddress:@"::" networkPrefixLength:@1];
-//    NEIPv6Route *route1 = [[NEIPv6Route alloc]initWithDestinationAddress:@"8000::" networkPrefixLength:@1];
-//    ipv6Settings.includedRoutes = @[route, route1];
-//    settings.IPv6Settings = ipv6Settings;
+    NSString * ipv6 = @"fd12:1:1:1::2";
+    NEIPv6Settings * ipv6Settings = [[NEIPv6Settings alloc] initWithAddresses:@[ipv6] networkPrefixLengths:@[@128]];
+    NEIPv6Route * route = [[NEIPv6Route alloc] initWithDestinationAddress:@"::" networkPrefixLength:@1];
+    NEIPv6Route *route1 = [[NEIPv6Route alloc]initWithDestinationAddress:@"8000::" networkPrefixLength:@1];
+    ipv6Settings.includedRoutes = @[route, route1];
+    settings.IPv6Settings = ipv6Settings;
     
     //dns setting
-//    NEDNSSettings * dnsSettings = [[NEDNSSettings alloc] initWithServers:@[@"10.168.80.2"]];
     NEDNSSettings * dnsSettings = [[NEDNSSettings alloc] initWithServers:@[@"1.1.1.1"]];
     dnsSettings.matchDomains = @[self.domainName];
     dnsSettings.matchDomainsNoSearch = YES;
@@ -116,21 +123,63 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
             weakSelf.completionHandler(error);
         } else {
             weakSelf.completionHandler(nil);
+//            [weakSelf startServer];
             [weakSelf readPackets];
         }
     }];
 }
+
+- (void)startServer {
+    self.socket = [[GCDAsyncSocket alloc] initWithDelegate:self delegateQueue:self.socketQueue];
+    self.clientSockets = [[NSMutableArray alloc] initWithCapacity:1];
+    NSError * error = nil;
+    [self.socket acceptOnPort:12355 error:&error];
+    if (error) {
+        NSLog(@"start TCP socket server error: %@", error.localizedDescription);
+    } else {
+        NSLog(@"start TCP socket server success......");
+//        self.conn = [self createTCPConnectionThroughTunnelToEndpoint:[NWHostEndpoint endpointWithHostname:@"10.168.80.187" port:@"8080"] enableTLS:NO TLSParameters:nil delegate:nil];
+//        [self.conn addObserver:self forKeyPath:@"state" options:NSKeyValueObservingOptionNew context:nil];
+//        [self.conn readMinimumLength:0 maximumLength:65535 completionHandler:^(NSData * _Nullable data, NSError * _Nullable error) {
+//            if (error) {
+//                NSLog(@"jsp--- read error: %@", error.localizedFailureReason);
+//            } else {
+//                if (self.clientSockets.count >= 2) {
+//                    GCDAsyncSocket * socket = self.clientSockets[1];
+//                    [socket writeData:data withTimeout:-1 tag:0];
+//                }
+//            }
+//        }];
+    }
+}
+
+//- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary<NSKeyValueChangeKey,id> *)change context:(void *)context {
+//    if ([keyPath isEqualToString:@"state"]) {
+//        switch (self.conn.state) {
+//            case NWTCPConnectionStateInvalid:
+//                NSLog(@"invalid------");
+//                break;
+//            case NWTCPConnectionStateConnecting:
+//                NSLog(@"Connecting-----");
+//                break;
+//            case NWTCPConnectionStateWaiting:
+//                NSLog(@"Waiting----------");
+//                break;
+//            case NWTCPConnectionStateConnected:
+//                NSLog(@"Connected---------");
+//                break;
+//
+//            default:
+//                break;
+//        }
+//    }
+//}
 
 - (void)readPackets {
     NSLog(@"jsp---------readPackets");
     [self.packetFlow readPacketObjectsWithCompletionHandler:^(NSArray<NEPacket *> * _Nonnull packets) {
         [packets enumerateObjectsUsingBlock:^(NEPacket * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
             [self parsePacket:obj.data];
-
-
-//            NSLog(@"jsp---- read from tun0: %@", obj.data.hexString);
-
-            
         }];
         [self readPackets];
     }];
@@ -147,23 +196,154 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
         TransportProtocol transProtocol = [self getTransProtocol:byteArr];
         NSLog(@"jsp---- transprotocol: %d", transProtocol);
         if (transProtocol == TCP) {
+            // 1. read: 10.10.10.10:1234 ----> 1.2.3.4:80
+            // 2. change to: 1.2.3.4:1234 -----> 10.10.10.10:12355, and write to tun0
+            // 3. read: 10.10.10.10:12355 -----> 1.2.3.4:1234
+            // 4. change to: 1.2.3.4:80 -----> 10.10.10.10:1234, and write to tun0
+            
             // get des IP
             NSArray * arr = [self.routeIP componentsSeparatedByString:@"."];
-            
+            // 1. read: 10.10.10.10:1234 ----> 1.2.3.4:80
             if (byteArr[16] == [arr[0] intValue] && byteArr[17] == [arr[1] intValue] &&
-                byteArr[18] == [arr[2] intValue] && byteArr[19] == [arr[3] intValue]) {
-                NSLog(@"jsp---------------  oooooooooooooo");
-                NSDictionary * dict = @{
-                    @"ip": @"1.2.3.4",
-                    @"data": packet.hexString
-                };
-                NSString * msg;
-                NSData * data = [NSJSONSerialization dataWithJSONObject:dict options:NSJSONWritingPrettyPrinted error:nil];
-                if (data) {
-                    msg = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+                byteArr[18] == [arr[2] intValue] && byteArr[19] == [arr[3] intValue] &&
+                byteArr[22] == 0x00 & byteArr[23] == 0x50) {
+                NSLog(@"jsp------ read:%d.%d.%d.%d", byteArr[16], byteArr[17], byteArr[18], byteArr[19]);
+                
+                UInt16 len = [self getTotalLength:byteArr];
+                int ipHeaderLen = [self getIPHeaderLength:byteArr];
+                
+                NSMutableArray * resIP = [NSMutableArray array];
+                for (int i = 0; i < ipHeaderLen; i++) {
+                    resIP[i] = [NSNumber numberWithUnsignedChar:byteArr[i]];
                 }
-                [self.myWebSocket send:msg];
+                //exchange source IP <---> destination IP
+                [resIP exchangeObjectAtIndex:12 withObjectAtIndex:16];
+                [resIP exchangeObjectAtIndex:13 withObjectAtIndex:17];
+                [resIP exchangeObjectAtIndex:14 withObjectAtIndex:18];
+                [resIP exchangeObjectAtIndex:15 withObjectAtIndex:19];
+                
+                NSMutableArray * resTCP = [NSMutableArray array];
+                NSUInteger tcpLen = len - ipHeaderLen;
+                Byte tcpLen1 = (tcpLen >> 8) & 0xff;
+                Byte tcpLen2 = tcpLen & 0xff;
+                
+                for (int i = 0; i < tcpLen; i++) {
+                    resTCP[i] = [NSNumber numberWithUnsignedChar:byteArr[ipHeaderLen + i]];
+                }
+                
+                NSMutableArray * tempArr = [NSMutableArray array];
+                NSArray * fakeTCPHeader = @[
+                    resIP[12], resIP[13], resIP[14], resIP[15],
+                    resIP[16], resIP[17], resIP[18], resIP[19],
+                    @(0x00), @(0x06), @(tcpLen1), @(tcpLen2)
+                ];
+                
+                //change des port to TCP server listenning port: 12355
+                Byte desPort1 = (12355 >> 8) & 0xff;
+                Byte desPort2 = 12355 & 0xff;
+                resTCP[2] = @(desPort1);
+                resTCP[3] = @(desPort2);
+                
+                [tempArr addObjectsFromArray:fakeTCPHeader];
+                //reset TCP checksum
+                resTCP[16] = @(0x00);
+                resTCP[17] = @(0x00);
+                
+                [tempArr addObjectsFromArray:resTCP];
+                
+                uint16_t res = [self calculateCheckSum:tempArr];
+                Byte tcpChecksum1 = (res >> 8) & 0xff;
+                Byte tcpChecksum2 = res & 0xff;
+                // replace checksum field
+                resTCP[16] = @(tcpChecksum1);
+                resTCP[17] = @(tcpChecksum2);
+                
+                [tempArr removeAllObjects];
+                [tempArr addObjectsFromArray:resIP];
+                [tempArr addObjectsFromArray:resTCP];
+                
+                NSUInteger n = tempArr.count;
+                Byte reveive[n];
+                for (int i = 0; i < n; i++) {
+                    reveive[i] = [tempArr[i] unsignedCharValue];
+                }
+                NSData * data = [NSData dataWithBytes:reveive length:sizeof(reveive)];
+                NSLog(@"jsp------1111 send to tun0: %@", data.hexString);
+                [self.packetFlow writePackets:@[data] withProtocols:@[@AF_INET]];
             }
+            
+            // 3. read: 10.10.10.10:12355 -----> 1.2.3.4:1234
+            if (byteArr[12] == 0x0a && byteArr[13] == 0x0a &&
+                byteArr[14] == 0x0a && byteArr[15] == 0x0a &&
+                byteArr[20] == 0x30 && byteArr[21] == 0x43) {
+                NSLog(@"jsp------ source: 10.10.10.10:12355");
+                UInt16 len = [self getTotalLength:byteArr];
+                int ipHeaderLen = [self getIPHeaderLength:byteArr];
+                
+                NSMutableArray * resIP = [NSMutableArray array];
+                for (int i = 0; i < ipHeaderLen; i++) {
+                    resIP[i] = [NSNumber numberWithUnsignedChar:byteArr[i]];
+                }
+                
+                //exchange source IP <---> destination IP
+                [resIP exchangeObjectAtIndex:12 withObjectAtIndex:16];
+                [resIP exchangeObjectAtIndex:13 withObjectAtIndex:17];
+                [resIP exchangeObjectAtIndex:14 withObjectAtIndex:18];
+                [resIP exchangeObjectAtIndex:15 withObjectAtIndex:19];
+                
+                NSMutableArray * resTCP = [NSMutableArray array];
+                NSUInteger tcpLen = len - ipHeaderLen;
+                Byte tcpLen1 = (tcpLen >> 8) & 0xff;
+                Byte tcpLen2 = tcpLen & 0xff;
+                
+                for (int i = 0; i < tcpLen; i++) {
+                    resTCP[i] = [NSNumber numberWithUnsignedChar:byteArr[ipHeaderLen + i]];
+                }
+                
+                NSMutableArray * tempArr = [NSMutableArray array];
+                NSArray * fakeTCPHeader = @[
+                    resIP[12], resIP[13], resIP[14], resIP[15],
+                    resIP[16], resIP[17], resIP[18], resIP[19],
+                    @(0x00), @(0x06), @(tcpLen1), @(tcpLen2)
+                ];
+                
+                //change src port to 80
+                Byte srcPort1 = (80 >> 8) & 0xff;
+                Byte srcPort2 = 80 & 0xff;
+                resTCP[0] = @(srcPort1);
+                resTCP[1] = @(srcPort2);
+                
+                [tempArr addObjectsFromArray:fakeTCPHeader];
+                
+                resTCP[16] = @(0x00);
+                resTCP[17] = @(0x00);
+                
+                [tempArr addObjectsFromArray:resTCP];
+                
+                uint16_t res = [self calculateCheckSum:tempArr];
+                Byte tcpChecksum1 = (res >> 8) & 0xff;
+                Byte tcpChecksum2 = res & 0xff;
+                
+                // replace checksum field
+                resTCP[16] = @(tcpChecksum1);
+                resTCP[17] = @(tcpChecksum2);
+                
+                [tempArr removeAllObjects];
+                [tempArr addObjectsFromArray:resIP];
+                [tempArr addObjectsFromArray:resTCP];
+                
+                NSUInteger n = tempArr.count;
+                Byte reveive[n];
+                for (int i = 0; i < n; i++) {
+                    reveive[i] = [tempArr[i] unsignedCharValue];
+                }
+                NSData * data = [NSData dataWithBytes:reveive length:sizeof(reveive)];
+                NSLog(@"jsp------22222 send to tun0: %@", data.hexString);
+                [self.packetFlow writePackets:@[data] withProtocols:@[@AF_INET]];
+            }
+            
+            
+
 
 //            [self.packetFlow writePackets:@[packet] withProtocols:@[@AF_INET]];
 //            NSLog(@"jsp---------- 11111");
@@ -953,4 +1133,59 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
 //    }
 //    return arr;
 //}
+
+- (void)socket:(GCDAsyncSocket *)sock didReadData:(NSData *)data withTag:(long)tag {
+    NSLog(@"tcp server read:------ %@", [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
+//    [self.conn write:data completionHandler:^(NSError * _Nullable error) {
+//        if (error) {
+//            NSLog(@"jsp---error: %@", error.localizedFailureReason);
+//        }
+//    }];
+    [sock readDataWithTimeout:-1 tag:tag];
+//    if (self.clientSockets.count < 2) {
+//        [sock readDataWithTimeout:-1 tag:100];
+//    } else {
+//        GCDAsyncSocket * vpnSocket = self.clientSockets[0];
+//        GCDAsyncSocket * connectorSocket = self.clientSockets[1];
+//        if ([sock isEqual:vpnSocket]) {
+//            NSLog(@"%lu, receive from vpnSocket: %@", data.length, data);
+//            NSMutableArray * res = [self getCorrectPacket:data];
+//            for (NSData *obj in res) {
+//                [connectorSocket writeData:obj withTimeout:-1 tag:tag];
+//            }
+//            [sock readDataWithTimeout:-1 tag:100];
+//        } else {
+//            NSLog(@"%lu, receive from connectorSocket: %@", data.length, data);
+//            NSMutableArray * res = [self getCorrectPacket:data];
+//            for (NSData *obj in res) {
+//                [vpnSocket writeData:obj withTimeout:-1 tag:tag];
+//            }
+//            [sock readDataWithTimeout:-1 tag:100];
+//        }
+//    }
+}
+
+- (void)socket:(GCDAsyncSocket *)sock didAcceptNewSocket:(GCDAsyncSocket *)newSocket
+{
+    NSLog(@"new socket connect: %@", newSocket);
+    // in current logic, we should ensure connector connects with server first, so
+    // the first object in self.clientSockets should be connector client.
+    // This method is executed on the socketQueue (not the main thread)
+    @synchronized(self.clientSockets) {
+        [self.clientSockets addObject:newSocket];
+        [newSocket readDataWithTimeout:-1 tag:100];
+    }
+}
+
+- (void)socketDidDisconnect:(GCDAsyncSocket *)sock withError:(NSError *)err {
+    if (err) {
+        NSLog(@"DidDisconnect error: %@", err.localizedDescription);
+    } else if (sock != self.socket) {
+        @synchronized(self.clientSockets) {
+            [self.clientSockets removeObject:sock];
+        }
+    }
+}
+
+
 @end
