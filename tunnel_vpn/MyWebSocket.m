@@ -22,11 +22,14 @@
 
 - (void)didReceiveMessage:(NSString *)msg
 {
-    NSLog(@"jsp----- websocket server receive msg from ws client: %@", msg);
+    NSLog(@"jsp----- websocket server receive msg from ws client 0000000: %@", msg);
+    NSString * payload = [msg substringFromIndex:22];
+
+    NSData * response = [self convertHexStrToData:payload];
+    NSString * str = [[NSString alloc] initWithData:response encoding:NSUTF8StringEncoding];
+    NSLog(@"jsp----- websocket server receive msg from ws client 111111: %@", str);
+
     NSMutableArray * socketClients = [SharedSocketsManager sharedInstance].socketClients;
-//    if (self.receiveMessageHandler) {
-//        self.receiveMessageHandler(msg);
-//    }
     NSInteger len = msg.length;
     // fix header length = 22
     if (len > 22) {
@@ -42,24 +45,33 @@
         // iOS is little-endian by default
         UInt16 res = htons(portValue);
         
-        if (headerBytes[1] == 0x00) { // success
-            NSString * payload = [msg substringFromIndex:22];
-            GCDAsyncSocket * connectSocket = nil;
-            for (GCDAsyncSocket *socket in socketClients) {
-                if (socket.connectedPort == res) {
-                    [socket writeData:[payload dataUsingEncoding:NSUTF8StringEncoding] withTimeout:-1 tag:0];
-                    break;
-                }
+        NSString * payload = [msg substringFromIndex:22];
+        NSData * data = [self convertHexStrToData:payload];
+        NSLog(@"jsp----- send payload to socket: %@", data.description);
+//        GCDAsyncSocket * connectSocket = nil;
+        for (GCDAsyncSocket *socket in socketClients) {
+            if (socket.connectedPort == res) {
+                [socket writeData:data withTimeout:-1 tag:0];
+                [socket readDataWithTimeout:-1 tag:0];
+                break;
             }
-        } else { // fail, remove socket client
-            GCDAsyncSocket * failedSocket = nil;
-            for (GCDAsyncSocket *socket in socketClients) {
-                if (socket.connectedPort == res) {
-                    failedSocket = socket;
-                    break;
-                }
-            }
-            [[SharedSocketsManager sharedInstance].socketClients removeObject:failedSocket];
+        }
+//        if (headerBytes[1] == 0x00) { // success
+//            
+//        } else { // fail, remove socket client
+//            GCDAsyncSocket * failedSocket = nil;
+//            for (GCDAsyncSocket *socket in socketClients) {
+//                if (socket.connectedPort == res) {
+//                    failedSocket = socket;
+//                    break;
+//                }
+//            }
+//            [[SharedSocketsManager sharedInstance].socketClients removeObject:failedSocket];
+//        }
+    } else {
+        NSLog(@"jsp---- receive connect response....");
+        if (self.receiveMessageHandler) {
+            self.receiveMessageHandler(msg);
         }
     }
 }
@@ -97,6 +109,34 @@
 	[super didClose];
 }
 
+- (void)sendPayload:(NSData *)payload forSocket:(GCDAsyncSocket *)socket {
+    uint16_t srcPort = socket.connectedPort;
+    Byte srcPort1 = (srcPort >> 8) & 0xff;
+    Byte srcPort2 = srcPort & 0xff;
+    
+    Byte version = 0x01;
+    Byte cmd = 0x12;
+    Byte ipPro = 0x04;
+    
+    NSString * remoteIP = [SharedSocketsManager sharedInstance].remoteIP;
+    NSArray * ipArr = [remoteIP componentsSeparatedByString:@"."];
+    Byte ip1 = (Byte)[ipArr[0] intValue];
+    Byte ip2 = (Byte)[ipArr[1] intValue];
+    Byte ip3 = (Byte)[ipArr[2] intValue];
+    Byte ip4 = (Byte)[ipArr[3] intValue];
+    
+    //des port
+    Byte desPort1 = 0x00;
+    Byte desPort2 = 0x50;
+    
+    Byte headerBytes[] = {
+        version, cmd, ipPro, ip1, ip2, ip3, ip4,
+        desPort1, desPort2, srcPort1, srcPort2
+    };
+    NSMutableData * header = [NSMutableData dataWithBytes:headerBytes length:sizeof(headerBytes)];
+    [header appendData:payload];
+    [self sendMessage:header.hexString];
+}
 
 // send connect command to server.
 - (void)sendConnectForSocket:(GCDAsyncSocket *)clientSocket {
@@ -104,19 +144,17 @@
     Byte srcPort1 = (srcPort >> 8) & 0xff;
     Byte srcPort2 = srcPort & 0xff;
     
-
-    
     Byte version = 0x01;
     Byte cmd = 0x11;
     Byte ipPro = 0x04;
     
-    //10.168.80.187
-    Byte ip1 = 0x0a;
-    Byte ip2 = 0xa8;
-    Byte ip3 = 0x50;
-    Byte ip4 = 0xbb;
+    NSString * remoteIP = [SharedSocketsManager sharedInstance].remoteIP;
+    NSArray * ipArr = [remoteIP componentsSeparatedByString:@"."];
+    Byte ip1 = (Byte)[ipArr[0] intValue];
+    Byte ip2 = (Byte)[ipArr[1] intValue];
+    Byte ip3 = (Byte)[ipArr[2] intValue];
+    Byte ip4 = (Byte)[ipArr[3] intValue];
     
-
     //des port
     Byte desPort1 = 0x00;
     Byte desPort2 = 0x50;

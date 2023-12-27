@@ -150,8 +150,9 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
     // get params from job
     NSDictionary * params = @{
         @"name": @"opop0.com",
-        @"ip": @"1.2.3.4"
+        @"ip": @"10.168.80.187"
     };
+    [SharedSocketsManager sharedInstance].remoteIP = params[@"ip"];
     [self.manager.connection startVPNTunnelWithOptions:params andReturnError:nil];
     if (error) {
         NSLog(@"error: %@", error.localizedDescription);
@@ -243,8 +244,10 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
 
 - (void)socket:(GCDAsyncSocket *)sock didReadData:(NSData *)data withTag:(long)tag {
     NSLog(@"jsp----------%@ %d %@", sock, sock.connectedPort, [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
-//    [[SharedSocketsManager sharedInstance].myws sendMessage:data.hexString];
-    [sock readDataWithTimeout:-1 tag:tag];
+    if (data.length > 0) {
+        [[SharedSocketsManager sharedInstance].myws sendPayload:data forSocket:sock];
+        [sock readDataWithTimeout:-1 tag:tag];
+    }
 }
 
 - (void)socket:(GCDAsyncSocket *)sock didWriteDataWithTag:(long)tag {
@@ -258,8 +261,10 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
     @synchronized(self.clientSockets) {
         [[SharedSocketsManager sharedInstance].socketClients addObject:newSocket];
         // when received a new socket client, we should send a 'connect' command to server.
-//        [[SharedSocketsManager sharedInstance].myws sendConnectForSocket:newSocket];
-        [newSocket readDataWithTimeout:-1 tag:0];
+        [[SharedSocketsManager sharedInstance].myws sendConnectForSocket:newSocket];
+        [SharedSocketsManager sharedInstance].myws.receiveMessageHandler = ^(NSString *msg) {
+            [newSocket readDataWithTimeout:-1 tag:0];
+        };
     }
 }
 

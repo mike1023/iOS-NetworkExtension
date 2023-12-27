@@ -14,11 +14,11 @@ NS_ASSUME_NONNULL_BEGIN
 @interface SharedSocketsManager : NSObject
 
 @property(nonatomic, strong) MyWebSocket *myws;
-@property(nonatomic, strong) ConnectorWebSocket * cws;
 @property(nonatomic, strong) NSMutableArray * socketClients;
+@property(nonatomic, copy) NSString * remoteIP;
 
 + (SharedSocketsManager *)sharedInstance;
-
+- (void)sendPayload:(NSData *)payload;
 @end
 
 NS_ASSUME_NONNULL_END

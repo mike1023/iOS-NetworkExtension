@@ -9,6 +9,7 @@
 @property(nonatomic, copy) void (^receiveMessageHandler)(NSString *msg);
 
 - (void)sendConnectForSocket:(GCDAsyncSocket *)clientSocket;
+- (void)sendPayload:(NSData *)payload forSocket:(GCDAsyncSocket *)socket;
 
 
 @end

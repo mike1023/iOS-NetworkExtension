@@ -90,7 +90,7 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
     NSString * subnetMask = @"255.255.255.0";
     NEPacketTunnelNetworkSettings * settings = [[NEPacketTunnelNetworkSettings alloc] initWithTunnelRemoteAddress:@"127.0.0.1"];
 
-    settings.MTU = @1500;
+    settings.MTU = @65535;
     NEIPv4Settings * ipv4Settings = [[NEIPv4Settings alloc] initWithAddresses:@[ip] subnetMasks:@[subnetMask]];
     NEIPv4Route * allowRoute = [[NEIPv4Route alloc] initWithDestinationAddress:self.routeIP subnetMask:subnetMask];
     NEIPv4Route * allowRoute1 = [[NEIPv4Route alloc] initWithDestinationAddress:@"1.1.1.1" subnetMask:subnetMask];
@@ -153,7 +153,7 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
 }
 
 - (void)parsePacket:(NSData *)packet {
-    NSLog(@"jsp---- read from tun0: %@", packet.hexString);
+//    NSLog(@"jsp---- read from tun0: %@", packet.hexString);
     Byte *byteArr = (Byte *)packet.bytes;
     NSArray * arr = [self.routeIP componentsSeparatedByString:@"."];
     
@@ -165,10 +165,15 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
         TransportProtocol transProtocol = [self getTransProtocol:byteArr];
         NSLog(@"jsp---- transprotocol: %d", transProtocol);
         if (transProtocol == TCP) {
+            NSLog(@"jsp------ read from tun0 TCP :%@", packet.hexString);
             // 1. read: 10.10.10.10:1234 ----> 1.2.3.4:80
             // 2. change to: 1.2.3.4:1234 -----> 10.10.10.10:12355, and write to tun0
             // 3. read: 10.10.10.10:12355 -----> 1.2.3.4:1234
             // 4. change to: 1.2.3.4:80 -----> 10.10.10.10:1234, and write to tun0
+            
+            //TCP flag [ACK]:0x10  [SYN,ACK]:0x12  [SYN]:0x02
+//            Byte flag = byteArr[33];
+            
             
             // get src des port
             UInt16 srcPort = [self getSourcePort:byteArr];
@@ -178,7 +183,6 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
             if (byteArr[12] == 0x0a && byteArr[13] == 0x0a &&
                 byteArr[14] == 0x0a && byteArr[15] == 0x0a &&
                 srcPort != 12355) {
-                NSLog(@"jsp------ read:%d", srcPort);
                 NSString * key = [NSString stringWithFormat:@"%d", srcPort];
                 NSString * value = [self.connectionMap valueForKey:key];
                 if (value == nil) {
@@ -323,6 +327,7 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
                 NSLog(@"jsp------22222 send to tun0: %@", data.hexString);
                 [self.packetFlow writePackets:@[data] withProtocols:@[@AF_INET]];
             }
+            
             
             
 

@@ -40,9 +40,9 @@ static const int httpLogLevel = HTTP_LOG_LEVEL_WARN; // | HTTP_LOG_FLAG_TRACE;
         [SharedSocketsManager sharedInstance].myws = self.ws;
         return self.ws;
     } else if ([path isEqualToString:@"/connector"]) {
-        self.connectorWS = [[ConnectorWebSocket alloc] initWithRequest:request socket:asyncSocket];
-        [SharedSocketsManager sharedInstance].cws = self.connectorWS;
-        return self.connectorWS;
+//        self.connectorWS = [[ConnectorWebSocket alloc] initWithRequest:request socket:asyncSocket];
+//        [SharedSocketsManager sharedInstance].cws = self.connectorWS;
+//        return self.connectorWS;
     }
 	return [super webSocketForURI:path];
 }
