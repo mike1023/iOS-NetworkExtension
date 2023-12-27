@@ -20,9 +20,12 @@ static const int httpLogLevel = HTTP_LOG_LEVEL_WARN; // | HTTP_LOG_FLAG_TRACE;
 {
 	HTTPLogTrace();
 //    NSLog(@"jsp----- %@", request);
-    if([method isEqualToString:@"POST"] && [path isEqualToString:@"/test"])
-    {
+    if([method isEqualToString:@"POST"] && [path isEqualToString:@"/test"]) {
         return [[HTTPDataResponse alloc] initWithData:[@"123" dataUsingEncoding:NSUTF8StringEncoding]];
+    }
+    
+    if ([method isEqualToString:@"GET"]) {
+        return [[HTTPDataResponse alloc] initWithData:[@"456" dataUsingEncoding:NSUTF8StringEncoding]];
     }
 	
 	return [super httpResponseForMethod:method URI:path];

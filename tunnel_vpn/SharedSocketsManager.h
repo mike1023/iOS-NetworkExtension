@@ -15,6 +15,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property(nonatomic, strong) MyWebSocket *myws;
 @property(nonatomic, strong) ConnectorWebSocket * cws;
+@property(nonatomic, strong) NSMutableArray * socketClients;
 
 + (SharedSocketsManager *)sharedInstance;
 

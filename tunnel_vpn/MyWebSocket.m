@@ -1,6 +1,7 @@
 #import "MyWebSocket.h"
 #import "SharedSocketsManager.h"
-
+#import "GCDAsyncSocket.h"
+#import "NSData+HexString.h"
 
 
 
@@ -13,7 +14,7 @@
 {
 	
 	[super didOpen];
-	
+    NSLog(@"jsp------didOpen");
 //	[self sendMessage:@"Welcome to my WebSocket"];
 }
 
@@ -21,17 +22,46 @@
 
 - (void)didReceiveMessage:(NSString *)msg
 {
-    NSDictionary * dict;
-    if (msg) {
-        NSData * data = [msg dataUsingEncoding:NSUTF8StringEncoding];
-        if (data) {
-            dict = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
+    NSLog(@"jsp----- websocket server receive msg from ws client: %@", msg);
+    NSMutableArray * socketClients = [SharedSocketsManager sharedInstance].socketClients;
+//    if (self.receiveMessageHandler) {
+//        self.receiveMessageHandler(msg);
+//    }
+    NSInteger len = msg.length;
+    // fix header length = 22
+    if (len > 22) {
+        NSString * header = [msg substringToIndex:22];
+        NSData * headerData = [self convertHexStrToData:header];
+        Byte * headerBytes = (Byte *)headerData.bytes;
+        Byte srcPort1 = headerBytes[9];
+        Byte srcPort2 = headerBytes[10];
+        
+        Byte srcport[] = {srcPort1, srcPort2};
+        UInt16 portValue;
+        memcpy(&portValue, srcport, sizeof(portValue));
+        // iOS is little-endian by default
+        UInt16 res = htons(portValue);
+        
+        if (headerBytes[1] == 0x00) { // success
+            NSString * payload = [msg substringFromIndex:22];
+            GCDAsyncSocket * connectSocket = nil;
+            for (GCDAsyncSocket *socket in socketClients) {
+                if (socket.connectedPort == res) {
+                    [socket writeData:[payload dataUsingEncoding:NSUTF8StringEncoding] withTimeout:-1 tag:0];
+                    break;
+                }
+            }
+        } else { // fail, remove socket client
+            GCDAsyncSocket * failedSocket = nil;
+            for (GCDAsyncSocket *socket in socketClients) {
+                if (socket.connectedPort == res) {
+                    failedSocket = socket;
+                    break;
+                }
+            }
+            [[SharedSocketsManager sharedInstance].socketClients removeObject:failedSocket];
         }
     }
-    NSLog(@"jsp--- receive : ##### %@", msg);
-    // websocker server that in device should send the message received from network extension to connector websocket
-    NSString * s = [NSString stringWithFormat:@"device server ---> connector: %@", msg];
-    [[SharedSocketsManager sharedInstance].cws sendMessage:s];
 }
 
 - (NSData *)convertHexStrToData:(NSString *)str
@@ -65,6 +95,39 @@
 - (void)didClose
 {	
 	[super didClose];
+}
+
+
+// send connect command to server.
+- (void)sendConnectForSocket:(GCDAsyncSocket *)clientSocket {
+    uint16_t srcPort = clientSocket.connectedPort;
+    Byte srcPort1 = (srcPort >> 8) & 0xff;
+    Byte srcPort2 = srcPort & 0xff;
+    
+
+    
+    Byte version = 0x01;
+    Byte cmd = 0x11;
+    Byte ipPro = 0x04;
+    
+    //10.168.80.187
+    Byte ip1 = 0x0a;
+    Byte ip2 = 0xa8;
+    Byte ip3 = 0x50;
+    Byte ip4 = 0xbb;
+    
+
+    //des port
+    Byte desPort1 = 0x00;
+    Byte desPort2 = 0x50;
+    
+    Byte connectBytes[] = {
+        version, cmd, ipPro, ip1, ip2, ip3, ip4,
+        desPort1, desPort2, srcPort1, srcPort2
+    };
+    NSData * data = [NSData dataWithBytes:connectBytes length:sizeof(connectBytes)];
+
+    [self sendMessage:data.hexString];
 }
 
 @end

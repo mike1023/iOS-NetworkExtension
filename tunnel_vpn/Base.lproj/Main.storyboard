@@ -42,23 +42,36 @@
                                     <constraint firstAttribute="trailing" secondItem="RrR-ln-bLY" secondAttribute="trailing" constant="12" id="rLk-xB-4u6"/>
                                 </constraints>
                             </view>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="6tG-HN-OBz">
-                                <rect key="frame" x="16" y="262" width="75" height="35"/>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="z0Q-7G-vOa">
+                                <rect key="frame" x="94.333333333333329" y="232" width="204.66666666666666" height="40"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="40" id="ZvP-Tc-kjg"/>
+                                </constraints>
                                 <state key="normal" title="Button"/>
-                                <buttonConfiguration key="configuration" style="plain" title="Button"/>
+                                <buttonConfiguration key="configuration" style="filled" title="Start Websocket Server"/>
                                 <connections>
-                                    <action selector="sendReq:" destination="BYZ-38-t0r" eventType="touchUpInside" id="ELU-3A-MhR"/>
+                                    <action selector="startWS:" destination="BYZ-38-t0r" eventType="touchUpInside" id="Zmt-fT-bVR"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="cJz-Zy-H2P">
+                                <rect key="frame" x="91" y="335" width="211" height="35"/>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="filled" title="send to webserver client"/>
+                                <connections>
+                                    <action selector="sendToWSClient:" destination="BYZ-38-t0r" eventType="touchUpInside" id="2az-Av-Toj"/>
                                 </connections>
                             </button>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <constraints>
+                            <constraint firstItem="z0Q-7G-vOa" firstAttribute="top" secondItem="fD3-5N-qHG" secondAttribute="bottom" constant="68" id="3aM-oA-wMH"/>
                             <constraint firstItem="fD3-5N-qHG" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="54" id="5KA-1K-R4Y"/>
-                            <constraint firstItem="6tG-HN-OBz" firstAttribute="top" secondItem="fD3-5N-qHG" secondAttribute="bottom" constant="98" id="FcF-5s-hWX"/>
+                            <constraint firstItem="cJz-Zy-H2P" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="JfE-Ck-FMd"/>
                             <constraint firstItem="fD3-5N-qHG" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="Rdx-cG-Rhw"/>
                             <constraint firstItem="fD3-5N-qHG" firstAttribute="trailing" secondItem="6Tk-OE-BBY" secondAttribute="trailing" id="UPY-Yq-EvA"/>
-                            <constraint firstItem="6tG-HN-OBz" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="16" id="iBZ-0X-uKz"/>
+                            <constraint firstItem="cJz-Zy-H2P" firstAttribute="top" secondItem="z0Q-7G-vOa" secondAttribute="bottom" constant="63" id="Zfs-2R-40U"/>
+                            <constraint firstItem="z0Q-7G-vOa" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="tIx-jt-rLB"/>
                         </constraints>
                     </view>
                 </viewController>
