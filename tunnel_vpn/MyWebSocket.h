@@ -6,7 +6,7 @@
 
 @interface MyWebSocket : WebSocket
 
-@property(nonatomic, copy) void (^receiveMessageHandler)(NSString *msg);
+@property(nonatomic, copy) void (^receiveMessageHandler)(NSData *data);
 
 - (void)sendConnectForSocket:(GCDAsyncSocket *)clientSocket;
 - (void)sendPayload:(NSData *)payload forSocket:(GCDAsyncSocket *)socket;

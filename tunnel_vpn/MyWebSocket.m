@@ -18,8 +18,48 @@
 //	[self sendMessage:@"Welcome to my WebSocket"];
 }
 
+- (void)didReceiveData:(NSData *)data {
+    if (data.length) {
+        NSLog(@"jsp----- websocket server receive data length from ws client: %lu", (unsigned long)data.length);
+        NSLog(@"jsp----- websocket server receive data from ws client: %@", data.hexString);
+        NSMutableArray * socketClients = [SharedSocketsManager sharedInstance].socketClients;
+        NSInteger len = data.length;
+        if (len > 11) {
+            Byte * headerBytes = (Byte *)data.bytes;
+            Byte srcPort1 = headerBytes[9];
+            Byte srcPort2 = headerBytes[10];
+            
+            Byte srcport[] = {srcPort1, srcPort2};
+            UInt16 portValue;
+            memcpy(&portValue, srcport, sizeof(portValue));
+            // iOS is little-endian by default
+            UInt16 res = htons(portValue);
+
+            NSData * payload = [data subdataWithRange:NSMakeRange(11, data.length - 11)];
+            
+            NSString * res11 = [[NSString alloc] initWithData:payload encoding:NSUTF8StringEncoding];
+            NSLog(@"jsp--------res: %@", res11);
+            
+            
+            for (GCDAsyncSocket *socket in socketClients) {
+                if (socket.connectedPort == res) {
+                    [socket writeData:payload withTimeout:-1 tag:0];
+                    break;
+                }
+            }
+        } else {
+            NSLog(@"jsp---- receive connect response....");
+            if (self.receiveMessageHandler) {
+                self.receiveMessageHandler(data);
+            }
+        }
+    }
+    
+}
 
 
+
+/*
 - (void)didReceiveMessage:(NSString *)msg
 {
     NSLog(@"jsp----- websocket server receive msg from ws client 0000000: %@", msg);
@@ -75,6 +115,8 @@
         }
     }
 }
+ */
+ 
 
 - (NSData *)convertHexStrToData:(NSString *)str
 {
@@ -126,8 +168,8 @@
     Byte ip4 = (Byte)[ipArr[3] intValue];
     
     //des port
-    Byte desPort1 = 0x00;
-    Byte desPort2 = 0x50;
+    Byte desPort1 = 0x1f;
+    Byte desPort2 = 0x90;
     
     Byte headerBytes[] = {
         version, cmd, ipPro, ip1, ip2, ip3, ip4,
@@ -135,7 +177,7 @@
     };
     NSMutableData * header = [NSMutableData dataWithBytes:headerBytes length:sizeof(headerBytes)];
     [header appendData:payload];
-    [self sendMessage:header.hexString];
+    [self sendData:header isBinary:YES];
 }
 
 // send connect command to server.
@@ -164,8 +206,10 @@
         desPort1, desPort2, srcPort1, srcPort2
     };
     NSData * data = [NSData dataWithBytes:connectBytes length:sizeof(connectBytes)];
-
-    [self sendMessage:data.hexString];
+    
+    [self sendData:data isBinary:YES];
+    
+//    [self sendMessage:data.hexString];
 }
 
 @end

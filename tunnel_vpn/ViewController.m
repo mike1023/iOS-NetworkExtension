@@ -150,7 +150,7 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
     // get params from job
     NSDictionary * params = @{
         @"name": @"opop0.com",
-        @"ip": @"10.168.80.187"
+        @"ip": @"10.5.33.6"
     };
     [SharedSocketsManager sharedInstance].remoteIP = params[@"ip"];
     [self.manager.connection startVPNTunnelWithOptions:params andReturnError:nil];
@@ -251,7 +251,8 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
 }
 
 - (void)socket:(GCDAsyncSocket *)sock didWriteDataWithTag:(long)tag {
-    
+    NSLog(@"jsp----- ddiwrite");
+
 }
 
 - (void)socket:(GCDAsyncSocket *)sock didAcceptNewSocket:(GCDAsyncSocket *)newSocket
@@ -262,7 +263,7 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
         [[SharedSocketsManager sharedInstance].socketClients addObject:newSocket];
         // when received a new socket client, we should send a 'connect' command to server.
         [[SharedSocketsManager sharedInstance].myws sendConnectForSocket:newSocket];
-        [SharedSocketsManager sharedInstance].myws.receiveMessageHandler = ^(NSString *msg) {
+        [SharedSocketsManager sharedInstance].myws.receiveMessageHandler = ^(NSData *data) {
             [newSocket readDataWithTimeout:-1 tag:0];
         };
     }

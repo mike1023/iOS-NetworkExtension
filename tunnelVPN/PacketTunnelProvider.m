@@ -153,19 +153,19 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
 }
 
 - (void)parsePacket:(NSData *)packet {
-//    NSLog(@"jsp---- read from tun0: %@", packet.hexString);
+    NSLog(@"jsp---- read from tun0: %@", packet.hexString);
     Byte *byteArr = (Byte *)packet.bytes;
     NSArray * arr = [self.routeIP componentsSeparatedByString:@"."];
     
     // we only parse IPv4 packet now.
     NSUInteger ipVersion = [self getIPVersion:byteArr];
-    NSLog(@"jsp-------- IP VERSION :%lu", (unsigned long)ipVersion);
     if (ipVersion == 4) {
         // 1. is it a UDP
         TransportProtocol transProtocol = [self getTransProtocol:byteArr];
-        NSLog(@"jsp---- transprotocol: %d", transProtocol);
         if (transProtocol == TCP) {
-            NSLog(@"jsp------ read from tun0 TCP :%@", packet.hexString);
+            NSLog(@"jsp------ read from tun0 data length :%d", packet.length);
+            UInt16 len = [self getTotalLength:byteArr];
+            NSLog(@"jsp------ read from tun0, len = %d", len);
             // 1. read: 10.10.10.10:1234 ----> 1.2.3.4:80
             // 2. change to: 1.2.3.4:1234 -----> 10.10.10.10:12355, and write to tun0
             // 3. read: 10.10.10.10:12355 -----> 1.2.3.4:1234
@@ -183,13 +183,19 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
             if (byteArr[12] == 0x0a && byteArr[13] == 0x0a &&
                 byteArr[14] == 0x0a && byteArr[15] == 0x0a &&
                 srcPort != 12355) {
+                BOOL isOdd = NO;
+                
                 NSString * key = [NSString stringWithFormat:@"%d", srcPort];
                 NSString * value = [self.connectionMap valueForKey:key];
                 if (value == nil) {
                     [self.connectionMap setObject:[NSString stringWithFormat:@"%d", desPort] forKey:key];
                 }
                 UInt16 len = [self getTotalLength:byteArr];
+                if (len % 2 != 0) {
+                    isOdd = YES;
+                }
                 int ipHeaderLen = [self getIPHeaderLength:byteArr];
+                NSLog(@"jsp-------ipHeaderLen: %d", ipHeaderLen);
                 
                 NSMutableArray * resIP = [NSMutableArray array];
                 for (int i = 0; i < ipHeaderLen; i++) {
@@ -203,6 +209,7 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
                 
                 NSMutableArray * resTCP = [NSMutableArray array];
                 NSUInteger tcpLen = len - ipHeaderLen;
+
                 Byte tcpLen1 = (tcpLen >> 8) & 0xff;
                 Byte tcpLen2 = tcpLen & 0xff;
                 
@@ -228,8 +235,10 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
                 resTCP[16] = @(0x00);
                 resTCP[17] = @(0x00);
                 
+                if (isOdd) {
+                    [resTCP addObject:@(0x00)];
+                }
                 [tempArr addObjectsFromArray:resTCP];
-                
                 uint16_t res = [self calculateCheckSum:tempArr];
                 Byte tcpChecksum1 = (res >> 8) & 0xff;
                 Byte tcpChecksum2 = res & 0xff;
@@ -239,6 +248,9 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
                 
                 [tempArr removeAllObjects];
                 [tempArr addObjectsFromArray:resIP];
+                if (isOdd) {
+                    [resTCP removeLastObject];
+                }
                 [tempArr addObjectsFromArray:resTCP];
                 
                 NSUInteger n = tempArr.count;
@@ -255,8 +267,13 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
             if (byteArr[12] == 0x0a && byteArr[13] == 0x0a &&
                 byteArr[14] == 0x0a && byteArr[15] == 0x0a &&
                 srcPort == 12355) {
-                NSLog(@"jsp------ read:%d", srcPort);
+                NSLog(@"jsp------ srcPort == 12355");
+                // isOdd: if totalLen is odd, we need add a 0x00 byte at the last of packet, for checksum
+                BOOL isOdd = NO;
                 UInt16 len = [self getTotalLength:byteArr];
+                if (len % 2 != 0) {
+                    isOdd = YES;
+                }
                 int ipHeaderLen = [self getIPHeaderLength:byteArr];
                 
                 UInt16 desPort = [self getDestinationPort:byteArr];
@@ -285,6 +302,9 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
                 for (int i = 0; i < tcpLen; i++) {
                     resTCP[i] = [NSNumber numberWithUnsignedChar:byteArr[ipHeaderLen + i]];
                 }
+                if (isOdd) {
+                    [resTCP addObject:@(0x00)];
+                }
                 
                 NSMutableArray * tempArr = [NSMutableArray array];
                 NSArray * fakeTCPHeader = @[
@@ -305,7 +325,6 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
                 resTCP[17] = @(0x00);
                 
                 [tempArr addObjectsFromArray:resTCP];
-                
                 uint16_t res = [self calculateCheckSum:tempArr];
                 Byte tcpChecksum1 = (res >> 8) & 0xff;
                 Byte tcpChecksum2 = res & 0xff;
@@ -313,9 +332,14 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
                 // replace checksum field
                 resTCP[16] = @(tcpChecksum1);
                 resTCP[17] = @(tcpChecksum2);
+                // remove last object if total count is not odd
+                
                 
                 [tempArr removeAllObjects];
                 [tempArr addObjectsFromArray:resIP];
+                if (isOdd) {
+                    [resTCP removeLastObject];
+                }
                 [tempArr addObjectsFromArray:resTCP];
                 
                 NSUInteger n = tempArr.count;
