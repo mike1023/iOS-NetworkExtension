@@ -17,6 +17,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonatomic, strong) NSMutableArray * socketClients;
 @property(nonatomic, copy) NSString * remoteIP;
 
+
 + (SharedSocketsManager *)sharedInstance;
 - (void)sendPayload:(NSData *)payload;
 @end

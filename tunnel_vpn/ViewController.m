@@ -148,6 +148,7 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
 - (void)startVPN {
     NSError * error = nil;
     // get params from job
+    // http://10.168.80.187/en-US/index.html
     NSDictionary * params = @{
         @"name": @"opop0.com",
         @"ip": @"10.5.33.6"
@@ -252,8 +253,17 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
 
 - (void)socket:(GCDAsyncSocket *)sock didWriteDataWithTag:(long)tag {
     NSLog(@"jsp----- ddiwrite");
+    NSLog(@"jsp---- didWriteDataWithTag thread: %@", [NSThread currentThread]);
 
 }
+
+- (void)socket:(GCDAsyncSocket *)sock didWritePartialDataOfLength:(NSUInteger)partialLength tag:(long)tag {
+    NSLog(@"jsp %@---- now write000000 %lu of length", sock, (unsigned long)partialLength);
+}
+
+//- (void)socket:(GCDAsyncSocket *)sock didReadPartialDataOfLength:(NSUInteger)partialLength tag:(long)tag {
+//    NSLog(@"jsp---- now read111111 %lu of length", (unsigned long)partialLength);
+//}
 
 - (void)socket:(GCDAsyncSocket *)sock didAcceptNewSocket:(GCDAsyncSocket *)newSocket
 {

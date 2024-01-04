@@ -12,13 +12,12 @@
 
 - (void)didOpen
 {
-	
 	[super didOpen];
     NSLog(@"jsp------didOpen");
-//	[self sendMessage:@"Welcome to my WebSocket"];
 }
 
 - (void)didReceiveData:(NSData *)data {
+    NSLog(@"jsp---- didReceiveData thread: %@", [NSThread currentThread]);
     if (data.length) {
         NSLog(@"jsp----- websocket server receive data length from ws client: %lu", (unsigned long)data.length);
         NSLog(@"jsp----- websocket server receive data from ws client: %@", data.hexString);
@@ -34,15 +33,11 @@
             memcpy(&portValue, srcport, sizeof(portValue));
             // iOS is little-endian by default
             UInt16 res = htons(portValue);
-
+            
             NSData * payload = [data subdataWithRange:NSMakeRange(11, data.length - 11)];
-            
-            NSString * res11 = [[NSString alloc] initWithData:payload encoding:NSUTF8StringEncoding];
-            NSLog(@"jsp--------res: %@", res11);
-            
-            
             for (GCDAsyncSocket *socket in socketClients) {
                 if (socket.connectedPort == res) {
+                    
                     [socket writeData:payload withTimeout:-1 tag:0];
                     break;
                 }
@@ -198,8 +193,8 @@
     Byte ip4 = (Byte)[ipArr[3] intValue];
     
     //des port
-    Byte desPort1 = 0x00;
-    Byte desPort2 = 0x50;
+    Byte desPort1 = 0x1f;
+    Byte desPort2 = 0x90;
     
     Byte connectBytes[] = {
         version, cmd, ipPro, ip1, ip2, ip3, ip4,
@@ -208,8 +203,6 @@
     NSData * data = [NSData dataWithBytes:connectBytes length:sizeof(connectBytes)];
     
     [self sendData:data isBinary:YES];
-    
-//    [self sendMessage:data.hexString];
 }
 
 @end
