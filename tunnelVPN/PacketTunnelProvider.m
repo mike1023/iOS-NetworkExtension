@@ -120,7 +120,7 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
     __weak typeof(self) weakSelf = self;
     [self setTunnelNetworkSettings:settings completionHandler:^(NSError * _Nullable error) {
         if (error) {
-            NSLog(@"jsp--- error: %@", error.localizedDescription);
+//            NSLog(@"jsp--- error: %@", error.localizedDescription);
             weakSelf.completionHandler(error);
         } else {
             weakSelf.completionHandler(nil);
@@ -143,7 +143,7 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
 
 
 - (void)readPackets {
-    NSLog(@"jsp---------start readPackets---------");
+//    NSLog(@"jsp---------start readPackets---------");
     [self.packetFlow readPacketObjectsWithCompletionHandler:^(NSArray<NEPacket *> * _Nonnull packets) {
         [packets enumerateObjectsUsingBlock:^(NEPacket * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
             [self parsePacket:obj.data];
@@ -163,15 +163,15 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
         // 1. is it a UDP
         TransportProtocol transProtocol = [self getTransProtocol:byteArr];
         if (transProtocol == TCP) {
-            NSLog(@"jsp------ read from tun0 data length :%d", packet.length);
+//            NSLog(@"jsp------ read from tun0 data length :%d", packet.length);
             UInt16 len = [self getTotalLength:byteArr];
-            NSLog(@"jsp------ read from tun0, len = %d", len);
+//            NSLog(@"jsp------ read from tun0, len = %d", len);
             // 1. read: 10.10.10.10:1234 ----> 1.2.3.4:80
             // 2. change to: 1.2.3.4:1234 -----> 10.10.10.10:12355, and write to tun0
             // 3. read: 10.10.10.10:12355 -----> 1.2.3.4:1234
             // 4. change to: 1.2.3.4:80 -----> 10.10.10.10:1234, and write to tun0
             
-            //TCP flag [ACK]:0x10  [SYN,ACK]:0x12  [SYN]:0x02
+//            TCP flag [ACK]:0x10  [SYN,ACK]:0x12  [SYN]:0x02
 //            Byte flag = byteArr[33];
             
             
@@ -195,7 +195,7 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
                     isOdd = YES;
                 }
                 int ipHeaderLen = [self getIPHeaderLength:byteArr];
-                NSLog(@"jsp-------ipHeaderLen: %d", ipHeaderLen);
+//                NSLog(@"jsp-------ipHeaderLen: %d", ipHeaderLen);
                 
                 NSMutableArray * resIP = [NSMutableArray array];
                 for (int i = 0; i < ipHeaderLen; i++) {
@@ -259,7 +259,7 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
                     reveive[i] = [tempArr[i] unsignedCharValue];
                 }
                 NSData * data = [NSData dataWithBytes:reveive length:sizeof(reveive)];
-                NSLog(@"jsp------1111 send to tun0: %@", data.hexString);
+//                NSLog(@"jsp------1111 send to tun0: %@", data.hexString);
                 [self.packetFlow writePackets:@[data] withProtocols:@[@AF_INET]];
             }
             
@@ -267,7 +267,7 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
             if (byteArr[12] == 0x0a && byteArr[13] == 0x0a &&
                 byteArr[14] == 0x0a && byteArr[15] == 0x0a &&
                 srcPort == 12355) {
-                NSLog(@"jsp------ srcPort == 12355");
+//                NSLog(@"jsp------ srcPort == 12355");
                 // isOdd: if totalLen is odd, we need add a 0x00 byte at the last of packet, for checksum
                 BOOL isOdd = NO;
                 UInt16 len = [self getTotalLength:byteArr];
@@ -277,11 +277,12 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
                 int ipHeaderLen = [self getIPHeaderLength:byteArr];
                 
                 UInt16 desPort = [self getDestinationPort:byteArr];
-                // desPort is key for connMap, we can get original desPort from this key.
+                // currently, desPort is key for connMap, we can get original desPort from this key.
                 NSString * key = [NSString stringWithFormat:@"%d", desPort];
                 NSString * originalDesport = [self.connectionMap valueForKey:key];
-                Byte port = (Byte)[originalDesport intValue];
-                
+                int port = [originalDesport intValue];
+//                NSLog(@"jsp----- key:%@ originalDesport:%@ port:%d", key, originalDesport, port);
+
                 
                 NSMutableArray * resIP = [NSMutableArray array];
                 for (int i = 0; i < ipHeaderLen; i++) {
@@ -348,7 +349,7 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
                     reveive[i] = [tempArr[i] unsignedCharValue];
                 }
                 NSData * data = [NSData dataWithBytes:reveive length:sizeof(reveive)];
-                NSLog(@"jsp------22222 send to tun0: %@", data.hexString);
+//                NSLog(@"jsp------22222 send to tun0: %@", data.hexString);
                 [self.packetFlow writePackets:@[data] withProtocols:@[@AF_INET]];
             }
             
@@ -448,7 +449,7 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
         } else if (transProtocol == UDP) {
             // 2. destination port: generally, 53 is for DNS query
             UInt16 desPort = [self getDestinationPort:byteArr];
-            NSLog(@"jsp------- DNS port: %d", desPort);
+//            NSLog(@"jsp------- DNS port: %d", desPort);
             if (desPort != 53) {
                 return;
             }
@@ -457,12 +458,12 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
             // 00 41 (65): HTTPS
             // 00 01 (1):  A(IPv4)
             UInt16 type = [self getDNSQueryType:byteArr];
-            NSLog(@"jsp----- DNS TYPE = %d", type);
+//            NSLog(@"jsp----- DNS TYPE = %d", type);
             if (type == 1) {
                 [self getDomainName:byteArr];
                 // 3. get the target DNS query domainame
                 if ([self isPacketForPrivateDomainQuery:byteArr]) {
-                    NSLog(@"jsp---- match domainname.......");
+//                    NSLog(@"jsp---- match domainname.......");
                     [self generateDNSResponsePacket:byteArr];
                 }
             }

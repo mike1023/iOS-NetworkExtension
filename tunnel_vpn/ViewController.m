@@ -104,7 +104,7 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
 
 - (void)startServer {
     self.socket = [[GCDAsyncSocket alloc] initWithDelegate:self delegateQueue:self.socketQueue];
-    self.clientSockets = [[NSMutableArray alloc] initWithCapacity:1];
+    self.clientSockets = [NSMutableArray array];
     NSError * error = nil;
     [self.socket acceptOnPort:[PORT intValue] error:&error];
     if (error) {
@@ -150,8 +150,8 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
     // get params from job
     // http://10.168.80.187/en-US/index.html
     NSDictionary * params = @{
-        @"name": @"opop0.com",
-        @"ip": @"10.5.33.6"
+        @"name": @"opop1.com",
+        @"ip": @"10.168.80.187"
     };
     [SharedSocketsManager sharedInstance].remoteIP = params[@"ip"];
     [self.manager.connection startVPNTunnelWithOptions:params andReturnError:nil];
@@ -164,9 +164,6 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
 
 - (void)stopVPN {
     [self.manager.connection stopVPNTunnel];
-//    if ([self.httpServer isRunning]) {
-//        [self.httpServer stop];
-//    }
 }
 
 - (void)updateVPNStatus {
@@ -193,6 +190,49 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
 
 - (void)notifyConfiguteStatus {
     
+}
+
+
+- (void)socket:(GCDAsyncSocket *)sock didReadData:(NSData *)data withTag:(long)tag {
+    // also need get des port, like 80,8080,443
+//    NSLog(@"jsp--------%@ %d", sock, sock.connectedPort);
+    NSLog(@"jsp----- didReadData: %@", [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
+    if (data.length > 0) {
+        [[SharedSocketsManager sharedInstance].myws sendPayload:data forSocket:sock];
+    }
+    NSMutableArray *socketArr = [SharedSocketsManager sharedInstance].socketClients;
+    for (GCDAsyncSocket *socket in socketArr) {
+        [socket readDataWithTimeout:-1 tag:tag];
+    }
+}
+
+- (void)socket:(GCDAsyncSocket *)sock didWriteDataWithTag:(long)tag {
+//    NSLog(@"jsp----- ddiwrite: %@ %@", sock, [NSThread currentThread]);
+}
+
+- (void)socket:(GCDAsyncSocket *)sock didAcceptNewSocket:(GCDAsyncSocket *)newSocket
+{
+    NSLog(@"jsp-----%@ new socket connect: %@ %d", sock, newSocket, newSocket.connectedPort);
+    // This method is executed on the socketQueue (not the main thread)
+    @synchronized(self.clientSockets) {
+        [[SharedSocketsManager sharedInstance].socketClients addObject:newSocket];
+        // when received a new socket client, we should send a 'connect' command to server.
+        [[SharedSocketsManager sharedInstance].myws sendConnectForSocket:newSocket];
+        [SharedSocketsManager sharedInstance].myws.connectionResponseHandler = ^(GCDAsyncSocket *socket) {
+            NSLog(@"jsp----------connectionResponseHandler");
+            [socket readDataWithTimeout:-1 tag:0];
+        };
+    }
+}
+
+- (void)socketDidDisconnect:(GCDAsyncSocket *)sock withError:(NSError *)err {
+    if (err) {
+//        NSLog(@"%@ DidDisconnect, error: %@", sock, err.localizedDescription);
+    } else {
+        @synchronized(self.clientSockets) {
+            [[SharedSocketsManager sharedInstance].socketClients removeObject:sock];
+        }
+    }
 }
 
 //#pragma mark ---websocket delegate
@@ -242,53 +282,5 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
 //    }
 //    return arr;
 //}
-
-- (void)socket:(GCDAsyncSocket *)sock didReadData:(NSData *)data withTag:(long)tag {
-    NSLog(@"jsp----------%@ %d %@", sock, sock.connectedPort, [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
-    if (data.length > 0) {
-        [[SharedSocketsManager sharedInstance].myws sendPayload:data forSocket:sock];
-        [sock readDataWithTimeout:-1 tag:tag];
-    }
-}
-
-- (void)socket:(GCDAsyncSocket *)sock didWriteDataWithTag:(long)tag {
-    NSLog(@"jsp----- ddiwrite");
-    NSLog(@"jsp---- didWriteDataWithTag thread: %@", [NSThread currentThread]);
-
-}
-
-- (void)socket:(GCDAsyncSocket *)sock didWritePartialDataOfLength:(NSUInteger)partialLength tag:(long)tag {
-    NSLog(@"jsp %@---- now write000000 %lu of length", sock, (unsigned long)partialLength);
-}
-
-//- (void)socket:(GCDAsyncSocket *)sock didReadPartialDataOfLength:(NSUInteger)partialLength tag:(long)tag {
-//    NSLog(@"jsp---- now read111111 %lu of length", (unsigned long)partialLength);
-//}
-
-- (void)socket:(GCDAsyncSocket *)sock didAcceptNewSocket:(GCDAsyncSocket *)newSocket
-{
-    NSLog(@"jsp-----%@ new socket connect: %@ %d", sock, newSocket, newSocket.connectedPort);
-    // This method is executed on the socketQueue (not the main thread)
-    @synchronized(self.clientSockets) {
-        [[SharedSocketsManager sharedInstance].socketClients addObject:newSocket];
-        // when received a new socket client, we should send a 'connect' command to server.
-        [[SharedSocketsManager sharedInstance].myws sendConnectForSocket:newSocket];
-        [SharedSocketsManager sharedInstance].myws.receiveMessageHandler = ^(NSData *data) {
-            [newSocket readDataWithTimeout:-1 tag:0];
-        };
-    }
-}
-
-- (void)socketDidDisconnect:(GCDAsyncSocket *)sock withError:(NSError *)err {
-    if (err) {
-        NSLog(@"%@ DidDisconnect, error: %@", sock, err.localizedDescription);
-    } else {
-        @synchronized(self.clientSockets) {
-            [[SharedSocketsManager sharedInstance].socketClients removeObject:sock];
-        }
-    }
-}
-
-
 
 @end
