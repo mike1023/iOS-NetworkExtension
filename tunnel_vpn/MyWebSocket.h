@@ -7,7 +7,7 @@
 @interface MyWebSocket : WebSocket
 
 @property(nonatomic, copy) void (^connectionResponseHandler)(GCDAsyncSocket *socket);
-
+@property(nonatomic, copy) void (^receiveDataHandler)(GCDAsyncSocket *socket);
 
 
 - (void)sendConnectForSocket:(GCDAsyncSocket *)clientSocket;

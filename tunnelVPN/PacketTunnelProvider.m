@@ -32,6 +32,7 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
 @property (nonatomic, assign) BOOL isRunning;
 @property (nonatomic, strong) NWTCPConnection * conn;
 @property (nonatomic, strong) NSMutableDictionary * connectionMap;
+@property (nonatomic, strong) NSUserDefaults * userGroupDefaults;
 @end
 
 @implementation PacketTunnelProvider
@@ -39,11 +40,12 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
 - (void)startTunnelWithOptions:(NSDictionary *)options completionHandler:(void (^)(NSError *))completionHandler {
     // Add code here to start the process of connecting the tunnel.
 //    [self getConfigurationInfo:self.protocolConfiguration];
-    dispatch_queue_attr_t queueAttributes = dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL, QOS_CLASS_UTILITY, 0);
-    self.socketQueue = dispatch_queue_create("com.opentext.tunnel_vpn", queueAttributes);
+//    dispatch_queue_attr_t queueAttributes = dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL, QOS_CLASS_UTILITY, 0);
+//    self.socketQueue = dispatch_queue_create("com.opentext.tunnel_vpn", queueAttributes);
     self.domainName = options[@"name"];
     self.routeIP = options[@"ip"];
     self.connectionMap = [NSMutableDictionary dictionary];
+    self.userGroupDefaults = [[NSUserDefaults standardUserDefaults] initWithSuiteName:@"group.com.opentext.harris.tunnel-vpn"];
     self.completionHandler = completionHandler;
 //    [self setupSocketClient];
     [self setupTunnelNetwork];
@@ -61,6 +63,9 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
 - (void)stopTunnelWithReason:(NEProviderStopReason)reason completionHandler:(void (^)(void))completionHandler {
     // Add code here to start the process of stopping the tunnel.
     [self.connectionMap removeAllObjects];
+    NSUserDefaults *groupDefault = [[NSUserDefaults standardUserDefaults] initWithSuiteName:@"group.com.opentext.harris.tunnel-vpn"];
+    [groupDefault removePersistentDomainForName:@"group.com.opentext.harris.tunnel-vpn"];
+    self.userGroupDefaults = nil;
     completionHandler();
 }
 
@@ -187,6 +192,7 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
                 
                 NSString * key = [NSString stringWithFormat:@"%d", srcPort];
                 NSString * value = [self.connectionMap valueForKey:key];
+                [self.userGroupDefaults setValue:@(desPort) forKey:key];
                 if (value == nil) {
                     [self.connectionMap setObject:[NSString stringWithFormat:@"%d", desPort] forKey:key];
                 }

@@ -151,7 +151,7 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
     // http://10.168.80.187/en-US/index.html
     NSDictionary * params = @{
         @"name": @"opop1.com",
-        @"ip": @"10.168.80.187"
+        @"ip": @"10.5.33.6"
     };
     [SharedSocketsManager sharedInstance].remoteIP = params[@"ip"];
     [self.manager.connection startVPNTunnelWithOptions:params andReturnError:nil];
@@ -164,6 +164,8 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
 
 - (void)stopVPN {
     [self.manager.connection stopVPNTunnel];
+    NSUserDefaults *groupDefault = [[NSUserDefaults standardUserDefaults] initWithSuiteName:@"group.com.opentext.harris.tunnel-vpn"];
+    [groupDefault removePersistentDomainForName:@"group.com.opentext.harris.tunnel-vpn"];
 }
 
 - (void)updateVPNStatus {
@@ -195,15 +197,17 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
 
 - (void)socket:(GCDAsyncSocket *)sock didReadData:(NSData *)data withTag:(long)tag {
     // also need get des port, like 80,8080,443
-//    NSLog(@"jsp--------%@ %d", sock, sock.connectedPort);
     NSLog(@"jsp----- didReadData: %@", [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
     if (data.length > 0) {
         [[SharedSocketsManager sharedInstance].myws sendPayload:data forSocket:sock];
     }
-    NSMutableArray *socketArr = [SharedSocketsManager sharedInstance].socketClients;
-    for (GCDAsyncSocket *socket in socketArr) {
+    [SharedSocketsManager sharedInstance].myws.receiveDataHandler = ^(GCDAsyncSocket *socket) {
         [socket readDataWithTimeout:-1 tag:tag];
-    }
+    };
+//    NSMutableArray *socketArr = [SharedSocketsManager sharedInstance].socketClients;
+//    for (GCDAsyncSocket *socket in socketArr) {
+//        [socket readDataWithTimeout:-1 tag:tag];
+//    }
 }
 
 - (void)socket:(GCDAsyncSocket *)sock didWriteDataWithTag:(long)tag {
