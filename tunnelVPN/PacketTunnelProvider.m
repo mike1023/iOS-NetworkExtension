@@ -6,31 +6,25 @@
 //
 
 #import "PacketTunnelProvider.h"
-#import "GCDAsyncSocket.h"
 #import "NSData+HexString.h"
 #import "Packet.h"
-#import "SRWebSocket.h"
+
 
 typedef NS_ENUM(UInt8, TransportProtocol) {
     TCP = 6,
     UDP = 17
 };
 
-@interface PacketTunnelProvider ()<GCDAsyncSocketDelegate, hpSRWebSocketDelegate>
+#define TCPLISTENINGPORT 12355
+
+
+@interface PacketTunnelProvider ()
 @property (nonatomic, copy) void (^completionHandler)(NSError *);
 
 @property (nonatomic, copy) NSString * domainName;
 @property (nonatomic, copy) NSString * routeIP;
 @property (nonatomic, copy) NSArray * domainArr;
-@property (nonatomic, strong) hpSRWebSocket * myWebSocket;
 
-@property (nonatomic, copy) NSString * hostname;
-@property (nonatomic, assign) uint16_t port;
-@property (nonatomic, strong) GCDAsyncSocket *socket;
-@property (nonatomic, strong) dispatch_queue_t socketQueue;
-@property (nonatomic, strong) NSMutableArray<GCDAsyncSocket *> *clientSockets;
-@property (nonatomic, assign) BOOL isRunning;
-@property (nonatomic, strong) NWTCPConnection * conn;
 @property (nonatomic, strong) NSMutableDictionary * connectionMap;
 @property (nonatomic, strong) NSUserDefaults * userGroupDefaults;
 @end
@@ -39,25 +33,13 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
 
 - (void)startTunnelWithOptions:(NSDictionary *)options completionHandler:(void (^)(NSError *))completionHandler {
     // Add code here to start the process of connecting the tunnel.
-//    [self getConfigurationInfo:self.protocolConfiguration];
-//    dispatch_queue_attr_t queueAttributes = dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL, QOS_CLASS_UTILITY, 0);
-//    self.socketQueue = dispatch_queue_create("com.opentext.tunnel_vpn", queueAttributes);
     self.domainName = options[@"name"];
     self.routeIP = options[@"ip"];
     self.connectionMap = [NSMutableDictionary dictionary];
     self.userGroupDefaults = [[NSUserDefaults standardUserDefaults] initWithSuiteName:@"group.com.opentext.harris.tunnel-vpn"];
     self.completionHandler = completionHandler;
-//    [self setupSocketClient];
     [self setupTunnelNetwork];
 
-}
-
-- (void)getConfigurationInfo:(NEVPNProtocol *)configuration {
-    NETunnelProviderProtocol * providerProtocol = (NETunnelProviderProtocol *)configuration;
-    NSString * fullAddress = providerProtocol.serverAddress;
-    NSArray * addressArr = [fullAddress componentsSeparatedByString:@":"];
-    self.hostname = addressArr[0];
-    self.port = [addressArr[1] intValue];
 }
 
 - (void)stopTunnelWithReason:(NEProviderStopReason)reason completionHandler:(void (^)(void))completionHandler {
@@ -68,26 +50,6 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
     self.userGroupDefaults = nil;
     completionHandler();
 }
-
-- (void)setupSocketClient {
-    //ws://10.5.34.90/ws   ws://127.0.0.1:%d/vpn
-//    NSString *urlString = [NSString stringWithFormat:@"ws://10.168.80.250:8080/ws1"];
-//    self.myWebSocket = [[hpSRWebSocket alloc] initWithURLRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:urlString]]];
-//    self.myWebSocket.delegate = self;
-//    [self.myWebSocket open];
-    
-    dispatch_queue_attr_t queueAttributes = dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL, QOS_CLASS_UTILITY, 0);
-    self.socketQueue = dispatch_queue_create("tunnel.opentxt.queue", queueAttributes);
-    self.socket = [[GCDAsyncSocket alloc] initWithDelegate:self delegateQueue:self.socketQueue];
-    NSError * error = nil;
-    [self.socket connectToHost:self.hostname onPort:self.port error:&error];
-    if (error) {
-        NSLog(@"error, client socket connect failed: %@", error.localizedDescription);
-    } else {
-        [self setupTunnelNetwork];
-    }
-}
-
 
 - (void)setupTunnelNetwork {
     // configure TUN interface, it can capture IP packets.
@@ -134,27 +96,21 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
     }];
 }
 
-//- (void)startServer {
-//    self.socket = [[GCDAsyncSocket alloc] initWithDelegate:self delegateQueue:self.socketQueue];
-//    self.clientSockets = [[NSMutableArray alloc] initWithCapacity:1];
-//    NSError * error = nil;
-//    [self.socket acceptOnPort:12355 error:&error];
-//    if (error) {
-//        NSLog(@"start TCP socket server error: %@", error.localizedDescription);
-//    } else {
-//        NSLog(@"start TCP socket server success......");
-//    }
-//}
-
 
 - (void)readPackets {
-//    NSLog(@"jsp---------start readPackets---------");
     [self.packetFlow readPacketObjectsWithCompletionHandler:^(NSArray<NEPacket *> * _Nonnull packets) {
         [packets enumerateObjectsUsingBlock:^(NEPacket * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
             [self parsePacket:obj.data];
         }];
         [self readPackets];
     }];
+}
+
+- (void)exchangeIP:(NSMutableArray *)arr {
+    [arr exchangeObjectAtIndex:12 withObjectAtIndex:16];
+    [arr exchangeObjectAtIndex:13 withObjectAtIndex:17];
+    [arr exchangeObjectAtIndex:14 withObjectAtIndex:18];
+    [arr exchangeObjectAtIndex:15 withObjectAtIndex:19];
 }
 
 - (void)parsePacket:(NSData *)packet {
@@ -168,17 +124,11 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
         // 1. is it a UDP
         TransportProtocol transProtocol = [self getTransProtocol:byteArr];
         if (transProtocol == TCP) {
-//            NSLog(@"jsp------ read from tun0 data length :%d", packet.length);
             UInt16 len = [self getTotalLength:byteArr];
-//            NSLog(@"jsp------ read from tun0, len = %d", len);
             // 1. read: 10.10.10.10:1234 ----> 1.2.3.4:80
             // 2. change to: 1.2.3.4:1234 -----> 10.10.10.10:12355, and write to tun0
             // 3. read: 10.10.10.10:12355 -----> 1.2.3.4:1234
             // 4. change to: 1.2.3.4:80 -----> 10.10.10.10:1234, and write to tun0
-            
-//            TCP flag [ACK]:0x10  [SYN,ACK]:0x12  [SYN]:0x02
-//            Byte flag = byteArr[33];
-            
             
             // get src des port
             UInt16 srcPort = [self getSourcePort:byteArr];
@@ -187,7 +137,7 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
             // 1. read: 10.10.10.10:1234 ----> 1.2.3.4:80
             if (byteArr[12] == 0x0a && byteArr[13] == 0x0a &&
                 byteArr[14] == 0x0a && byteArr[15] == 0x0a &&
-                srcPort != 12355) {
+                srcPort != TCPLISTENINGPORT) {
                 BOOL isOdd = NO;
                 
                 NSString * key = [NSString stringWithFormat:@"%d", srcPort];
@@ -201,18 +151,14 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
                     isOdd = YES;
                 }
                 int ipHeaderLen = [self getIPHeaderLength:byteArr];
-//                NSLog(@"jsp-------ipHeaderLen: %d", ipHeaderLen);
                 
                 NSMutableArray * resIP = [NSMutableArray array];
                 for (int i = 0; i < ipHeaderLen; i++) {
                     resIP[i] = [NSNumber numberWithUnsignedChar:byteArr[i]];
                 }
                 //exchange source IP <---> destination IP
-                [resIP exchangeObjectAtIndex:12 withObjectAtIndex:16];
-                [resIP exchangeObjectAtIndex:13 withObjectAtIndex:17];
-                [resIP exchangeObjectAtIndex:14 withObjectAtIndex:18];
-                [resIP exchangeObjectAtIndex:15 withObjectAtIndex:19];
-                
+                [self exchangeIP:resIP];
+
                 NSMutableArray * resTCP = [NSMutableArray array];
                 NSUInteger tcpLen = len - ipHeaderLen;
 
@@ -231,8 +177,8 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
                 ];
                 
                 //change des port to TCP server listenning port: 12355
-                Byte desPort1 = (12355 >> 8) & 0xff;
-                Byte desPort2 = 12355 & 0xff;
+                Byte desPort1 = (TCPLISTENINGPORT >> 8) & 0xff;
+                Byte desPort2 = TCPLISTENINGPORT & 0xff;
                 resTCP[2] = @(desPort1);
                 resTCP[3] = @(desPort2);
                 
@@ -265,15 +211,13 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
                     reveive[i] = [tempArr[i] unsignedCharValue];
                 }
                 NSData * data = [NSData dataWithBytes:reveive length:sizeof(reveive)];
-//                NSLog(@"jsp------1111 send to tun0: %@", data.hexString);
                 [self.packetFlow writePackets:@[data] withProtocols:@[@AF_INET]];
             }
             
             // 3. read: 10.10.10.10:12355 -----> 1.2.3.4:1234
             if (byteArr[12] == 0x0a && byteArr[13] == 0x0a &&
                 byteArr[14] == 0x0a && byteArr[15] == 0x0a &&
-                srcPort == 12355) {
-//                NSLog(@"jsp------ srcPort == 12355");
+                srcPort == TCPLISTENINGPORT) {
                 // isOdd: if totalLen is odd, we need add a 0x00 byte at the last of packet, for checksum
                 BOOL isOdd = NO;
                 UInt16 len = [self getTotalLength:byteArr];
@@ -287,8 +231,6 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
                 NSString * key = [NSString stringWithFormat:@"%d", desPort];
                 NSString * originalDesport = [self.connectionMap valueForKey:key];
                 int port = [originalDesport intValue];
-//                NSLog(@"jsp----- key:%@ originalDesport:%@ port:%d", key, originalDesport, port);
-
                 
                 NSMutableArray * resIP = [NSMutableArray array];
                 for (int i = 0; i < ipHeaderLen; i++) {
@@ -296,10 +238,7 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
                 }
                 
                 //exchange source IP <---> destination IP
-                [resIP exchangeObjectAtIndex:12 withObjectAtIndex:16];
-                [resIP exchangeObjectAtIndex:13 withObjectAtIndex:17];
-                [resIP exchangeObjectAtIndex:14 withObjectAtIndex:18];
-                [resIP exchangeObjectAtIndex:15 withObjectAtIndex:19];
+                [self exchangeIP:resIP];
                 
                 NSMutableArray * resTCP = [NSMutableArray array];
                 NSUInteger tcpLen = len - ipHeaderLen;
@@ -339,9 +278,8 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
                 // replace checksum field
                 resTCP[16] = @(tcpChecksum1);
                 resTCP[17] = @(tcpChecksum2);
+                
                 // remove last object if total count is not odd
-                
-                
                 [tempArr removeAllObjects];
                 [tempArr addObjectsFromArray:resIP];
                 if (isOdd) {
@@ -355,103 +293,8 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
                     reveive[i] = [tempArr[i] unsignedCharValue];
                 }
                 NSData * data = [NSData dataWithBytes:reveive length:sizeof(reveive)];
-//                NSLog(@"jsp------22222 send to tun0: %@", data.hexString);
                 [self.packetFlow writePackets:@[data] withProtocols:@[@AF_INET]];
             }
-            
-            
-            
-
-
-//            [self.packetFlow writePackets:@[packet] withProtocols:@[@AF_INET]];
-//            NSLog(@"jsp---------- 11111");
-//            NSString * desIP = @"127.0.0.1";
-//            UInt16 len = [self getTotalLength:byteArr];
-//            int ipHeaderLen = [self getIPHeaderLength:byteArr];
-//            
-//            NSMutableArray * resIP = [NSMutableArray array];
-//            for (int i = 0; i < ipHeaderLen; i++) {
-//                resIP[i] = [NSNumber numberWithUnsignedChar:byteArr[i]];
-//            }
-//            // replace desIP to "127.0.0.1"
-//            resIP[16] = @(127);
-//            resIP[17] = @(0);
-//            resIP[18] = @(0);
-//            resIP[19] = @(1);
-//            // reset checksum
-//            resIP[10] = @(0x00);
-//            resIP[11] = @(0x00);
-//            
-//            uint16_t ipCheckSum = [self calculateCheckSum:resIP];
-//            Byte ipCheckSum1 = (ipCheckSum >> 8) & 0xff;
-//            Byte ipCheckSum2 = ipCheckSum & 0xff;
-//            
-//            resIP[10] = @(ipCheckSum1);
-//            resIP[11] = @(ipCheckSum2);
-//            
-//            NSMutableArray * resTCP = [NSMutableArray array];
-//            NSUInteger tcpLen = len - ipHeaderLen;
-//            Byte tcpLen1 = (tcpLen >> 8) & 0xff;
-//            Byte tcpLen2 = tcpLen & 0xff;
-//            
-//            for (int i = 0; i < tcpLen; i++) {
-//                resTCP[i] = [NSNumber numberWithUnsignedChar:byteArr[ipHeaderLen + i]];
-//            }
-//            
-//            NSMutableArray * tempArr = [NSMutableArray array];
-//            NSArray * fakeTCPHeader = @[
-//                @(0x0a), @(0x0a), @(0x0a), @(0x0a),
-//                @(127), @(0), @(0), @(1),
-//                @(0x00), @(0x06), @(tcpLen1), @(tcpLen2)
-//            ];
-//            [tempArr addObjectsFromArray:fakeTCPHeader];
-//            resTCP[16] = @(0x00);
-//            resTCP[17] = @(0x00);
-//            
-//            
-//            [tempArr addObjectsFromArray:resTCP];
-//            
-//            uint16_t res = [self calculateCheckSum:tempArr];
-//            Byte tcpChecksum1 = (res >> 8) & 0xff;
-//            Byte tcpChecksum2 = res & 0xff;
-//            
-//            // replace checksum field
-//            resTCP[16] = @(tcpChecksum1);
-//            resTCP[17] = @(tcpChecksum2);
-//            
-//            [tempArr removeAllObjects];
-//            [tempArr addObjectsFromArray:resIP];
-//            [tempArr addObjectsFromArray:resTCP];
-//            
-//            NSUInteger n = tempArr.count;
-//            Byte reveive[n];
-//            for (int i = 0; i < n; i++) {
-//                reveive[i] = [tempArr[i] unsignedCharValue];
-//            }
-//            NSData * data = [NSData dataWithBytes:reveive length:sizeof(reveive)];
-//            NSLog(@"jsp------ send to tun0: %@", data.hexString);
-//            [self.packetFlow writePackets:@[data] withProtocols:@[@AF_INET]];
-            
-//            Byte flag = byteArr[33];
-//            // we could simulate TCP handshake packets
-//            // 1. client send  [SYN]
-//            // 2. response [SYN, ACK]
-//            // 3. client send [ACK]
-//            if (flag == 0x02) { // SYN
-//                NSLog(@"jsp--------SYN");
-//                [self generateSYNACK:byteArr];
-//            } else if (flag == 0x10) { // [ACK]:
-//                NSLog(@"jsp--------ACK");
-//                
-//            } else if (flag == 0x11) { // [FIN, ACK]
-//                NSLog(@"jsp------ [FIN, ACK]");
-//                //1. client send [FIN, ACK]
-//                //2. server reponse a [ACK] packet
-//                [self generateACKPacket:byteArr];
-//                //3. server send [FIN, ACK]
-////                [self generateFINACKPacket:byteArr];
-//                //4. client send  [ACK]
-//            }
         } else if (transProtocol == UDP) {
             // 2. destination port: generally, 53 is for DNS query
             UInt16 desPort = [self getDestinationPort:byteArr];
@@ -464,12 +307,10 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
             // 00 41 (65): HTTPS
             // 00 01 (1):  A(IPv4)
             UInt16 type = [self getDNSQueryType:byteArr];
-//            NSLog(@"jsp----- DNS TYPE = %d", type);
             if (type == 1) {
                 [self getDomainName:byteArr];
                 // 3. get the target DNS query domainame
                 if ([self isPacketForPrivateDomainQuery:byteArr]) {
-//                    NSLog(@"jsp---- match domainname.......");
                     [self generateDNSResponsePacket:byteArr];
                 }
             }
@@ -496,7 +337,6 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
         [tempArr addObject:@(byte)];
         n++;
     }
-//    NSLog(@"jsp---- %@", tempArr); // 3www4bbnn3com0
     self.domainArr = [tempArr copy];
     return self.domainArr;
 }
@@ -634,11 +474,6 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
     for (int i = 0; i < n3; i++) {
         resDNS[n1 + n2 + i] = resDNS2[i];
     }
-    
-    // for debug: log resDNS
-//    for (int i = 0; i < n; i++) {
-//        NSLog(@"jsp---dns: %hu", resDNS[i]);
-//    }
     
     //***********************UDP*************************
     // source port 53
@@ -819,255 +654,6 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
     return (byteArr[0] & 0x0f) * 4;
 }
 
-- (UInt32)getSYNSeqNum:(const Byte *)byteArr {
-    UInt32 seqNum;
-    memcpy(&seqNum, byteArr, sizeof(seqNum));
-    seqNum = htonl(seqNum);
-    return seqNum;
-}
-/*
-- (void)generateSYNACK:(Byte *)byteArr {
-    UInt16 len = [self getTotalLength:byteArr];
-    int ipHeaderLen = [self getIPHeaderLength:byteArr];
-    
-    int tcpLen = len - ipHeaderLen;
-    int tcpOptLen = tcpLen - 20; // TCP header length is 20 bytes(fixed).
-    
-    int index = ipHeaderLen;
-    // reveive TCP[SYN], generate a TCP[SYN, ACK]
-    Byte len1 = (len >> 8) & 0xff;
-    Byte len2 = len & 0xff;
-
-    NSMutableArray * resIP = [NSMutableArray arrayWithArray:@[
-        @(0x45), @(0x00),
-        @(len1), @(len2),
-        @(0x10), @(0x6f),
-        @(0x00), @(0x00),
-        @(0x37), @(0x06),
-        @(0x00), @(0x00), // checksum
-        @(byteArr[16]), @(byteArr[17]), @(byteArr[18]), @(byteArr[19]),
-        @(byteArr[12]), @(byteArr[13]), @(byteArr[14]), @(byteArr[15])
-    ]];
-    
-    
-    uint16_t ipCheckSum = [self calculateCheckSum:resIP];
-    Byte ipCheckSum1 = (ipCheckSum >> 8) & 0xff;
-    Byte ipCheckSum2 = ipCheckSum & 0xff;
-    
-    resIP[10] = @(ipCheckSum1);
-    resIP[11] = @(ipCheckSum2);
-    
-    // 1. get source and destination port
-    Byte srcPort1 = byteArr[index];
-    Byte srcPort2 = byteArr[index + 1];
-    
-    Byte desPort1 = byteArr[index + 2];
-    Byte desPort2 = byteArr[index + 3];
-    
-    // 2. get seq number
-    Byte seqNum[] = { byteArr[index + 4], byteArr[index + 5], byteArr[index + 6], byteArr[index + 7] };
-    UInt32 synSeqNum = [self getSYNSeqNum:seqNum];
-    
-    UInt32 synAckNum = synSeqNum + 1;
-    Byte synAck1 = synAckNum & 0xff;
-    Byte synAck2 = (synAckNum >> 8) & 0xff;
-    Byte synAck3 = (synAckNum >> 16) & 0xff;
-    Byte synAck4 = (synAckNum >> 24) & 0xff;
-    
-    NSMutableArray * resTCP = [NSMutableArray arrayWithArray:@[
-        @(desPort1), @(desPort2), @(srcPort1), @(srcPort2),
-        @(0x00), @(0x00), @(0x00), @(0x01), @(synAck4), @(synAck3), @(synAck2), @(synAck1),
-        @(0xb0), @(0x12),
-        @(0xff), @(0xff),
-        @(0x00), @(0x00), //checksum
-        @(0x00), @(0x00), //urgent pointer
-    ]];
-    
-    NSMutableArray * opt = [NSMutableArray array];
-    for (int i = 0; i < tcpOptLen; i++) {
-        [opt addObject:@(byteArr[ipHeaderLen + 20 + i])];
-    }
-    
-    Byte tcpLen1 = (tcpLen >> 8) & 0xff;
-    Byte tcpLen2 = tcpLen & 0xff;
-    
-    NSArray * fakeTCPHeader = @[
-        @(byteArr[16]), @(byteArr[17]), @(byteArr[18]), @(byteArr[19]),
-        @(byteArr[12]), @(byteArr[13]), @(byteArr[14]), @(byteArr[15]),
-        @(0x00), @(0x06), @(tcpLen1), @(tcpLen2)
-    ];
-    
-    NSArray * tempTCPArr = [[fakeTCPHeader arrayByAddingObjectsFromArray:resTCP] arrayByAddingObjectsFromArray:opt];
-    uint16_t res = [self calculateCheckSum:tempTCPArr];
-    Byte tcpChecksum1 = (res >> 8) & 0xff;
-    Byte tcpChecksum2 = res & 0xff;
-    
-    // replace checksum field
-    resTCP[16] = @(tcpChecksum1);
-    resTCP[17] = @(tcpChecksum2);
-    
-    [resIP addObjectsFromArray:resTCP];
-    [resIP addObjectsFromArray:opt];
-    NSUInteger n = resIP.count;
-    Byte resSynAck[n];
-    for (int i = 0; i < n; i++) {
-        resSynAck[i] = (Byte)[resIP[i] intValue];
-    }
-    
-    NSData * data = [NSData dataWithBytes:resSynAck length:n];
-    [self.packetFlow writePackets:@[data] withProtocols:@[@AF_INET]];
-}
-*/
-
-/*
-- (void)generateACKPacket:(Byte *)byteArr {
-    NSMutableArray * ipArr = [NSMutableArray array];
-    int ipHeaderLen = [self getIPHeaderLength:byteArr];
-    for (int i = 0; i < ipHeaderLen; i++) {
-        NSNumber * value = [NSNumber numberWithUnsignedChar:byteArr[i]];
-        [ipArr addObject:value];
-    }
-    // replace sourceip and des ip
-    [ipArr exchangeObjectAtIndex:12 withObjectAtIndex:16];
-    [ipArr exchangeObjectAtIndex:13 withObjectAtIndex:17];
-    [ipArr exchangeObjectAtIndex:14 withObjectAtIndex:18];
-    [ipArr exchangeObjectAtIndex:15 withObjectAtIndex:19];
-    
-    // set checksum to 0x00
-    ipArr[10] = @(0x00);
-    ipArr[11] = @(0x00);
-    
-    uint16_t checksum = [self calculateCheckSum:ipArr];
-    Byte ipChecksum1 = (checksum >> 8) & 0xff;
-    Byte ipChecksum2 = checksum & 0xff;
-    // replace checksum field
-    ipArr[10] = @(ipChecksum1);
-    ipArr[11] = @(ipChecksum2);
-    
-    
-    //generate TCP part
-    NSMutableArray * tcpArr = [NSMutableArray array];
-    UInt16 len = [self getTotalLength:byteArr];
-    int tcpLen = len - ipHeaderLen;
-    
-    for (int i = 0; i < tcpLen; i++) {
-        NSNumber * value = [NSNumber numberWithUnsignedChar:byteArr[i + ipHeaderLen]];
-        [tcpArr addObject:value];
-    }
-    // replace src port and des port
-    // srcPort:[0] [1] desPort:[2] [3]
-    [tcpArr exchangeObjectAtIndex:0 withObjectAtIndex:2];
-    [tcpArr exchangeObjectAtIndex:1 withObjectAtIndex:3];
-    
-    // get seq number
-    Byte seqNum[] = { [tcpArr[4] unsignedCharValue], [tcpArr[5] unsignedCharValue], [tcpArr[6] unsignedCharValue], [tcpArr[7] unsignedCharValue] };
-    UInt32 synSeqNum = [self getSYNSeqNum:seqNum];
-    
-    // generate ack num: seq + 1
-    UInt32 synAckNum = synSeqNum + 1;
-    Byte synAck1 = synAckNum & 0xff;
-    Byte synAck2 = (synAckNum >> 8) & 0xff;
-    Byte synAck3 = (synAckNum >> 16) & 0xff;
-    Byte synAck4 = (synAckNum >> 24) & 0xff;
-    
-    tcpArr[8] = @(synAck4);
-    tcpArr[9] = @(synAck3);
-    tcpArr[10] = @(synAck2);
-    tcpArr[11] = @(synAck1);
-    
-    // set flag to ACK
-    tcpArr[13] = @(0x010);
-    
-    // reset checksum to 0 temporarily
-    tcpArr[16] = @(0x00);
-    tcpArr[17] = @(0x00);
-    
-    //recalculate checksum for tcp part
-    Byte tcpLen1 = (tcpLen >> 8) & 0xff;
-    Byte tcpLen2 = tcpLen & 0xff;
-    NSMutableArray * tempArr = [NSMutableArray array];
-    
-    NSArray * fakeTCPHeader = @[
-        @(byteArr[16]), @(byteArr[17]), @(byteArr[18]), @(byteArr[19]),
-        @(byteArr[12]), @(byteArr[13]), @(byteArr[14]), @(byteArr[15]),
-        @(0x00), @(0x06), @(tcpLen1), @(tcpLen2)
-    ];
-    [tempArr addObjectsFromArray:fakeTCPHeader];
-    [tempArr addObjectsFromArray:tcpArr];
-    
-    uint16_t res = [self calculateCheckSum:tempArr];
-    Byte tcpChecksum1 = (res >> 8) & 0xff;
-    Byte tcpChecksum2 = res & 0xff;
-    
-    // replace checksum field
-    tcpArr[16] = @(tcpChecksum1);
-    tcpArr[17] = @(tcpChecksum2);
-    
-    [tempArr removeAllObjects];
-    [tempArr addObjectsFromArray:ipArr];
-    [tempArr addObjectsFromArray:tcpArr];
-    
-    NSUInteger n = tempArr.count;
-    Byte resFINACK[n];
-    for (int i = 0; i < n; i++) {
-        resFINACK[i] = [tempArr[i] unsignedCharValue];
-    }
-    NSLog(@"jsp-------[ACK]: %@", tempArr);
-    NSData * data = [NSData dataWithBytes:resFINACK length:n];
-    [self.packetFlow writePackets:@[data] withProtocols:@[@AF_INET]];
-    
-    // set flag to FIN,ACK
-    tcpArr[13] = @(0x11);
-    
-    // reset checksum
-    tcpArr[16] = @(0x00);
-    tcpArr[17] = @(0x00);
-    
-    // seq + 1
-    // get seq number
-    Byte seqNum1[] = { [tcpArr[4] unsignedCharValue], [tcpArr[5] unsignedCharValue], [tcpArr[6] unsignedCharValue], [tcpArr[7] unsignedCharValue] };
-    UInt32 finACKSeqNum = [self getSYNSeqNum:seqNum1];
-    
-    // generate new seq num: seq + 1
-    UInt32 finACKSeqNumRes = finACKSeqNum + 1;
-    Byte finAck1 = finACKSeqNumRes & 0xff;
-    Byte finAck2 = (finACKSeqNumRes >> 8) & 0xff;
-    Byte finAck3 = (finACKSeqNumRes >> 16) & 0xff;
-    Byte finAck4 = (finACKSeqNumRes >> 24) & 0xff;
-    
-    tcpArr[4] = @(finAck4);
-    tcpArr[5] = @(finAck3);
-    tcpArr[6] = @(finAck2);
-    tcpArr[7] = @(finAck1);
-    
-    [tempArr removeAllObjects];
-    [tempArr addObjectsFromArray:fakeTCPHeader];
-    [tempArr addObjectsFromArray:tcpArr];
-    
-    uint16_t res1 = [self calculateCheckSum:tempArr];
-    Byte tcpChecksum11 = (res1 >> 8) & 0xff;
-    Byte tcpChecksum22 = res1 & 0xff;
-    
-    // replace checksum field
-    tcpArr[16] = @(tcpChecksum11);
-    tcpArr[17] = @(tcpChecksum22);
-    
-    [tempArr removeAllObjects];
-    [tempArr addObjectsFromArray:ipArr];
-    [tempArr addObjectsFromArray:tcpArr];
-    
-    
-    NSUInteger n1 = tempArr.count;
-    Byte finACKToClient[n];
-    for (int i = 0; i < n1; i++) {
-        finACKToClient[i] = (Byte)[tempArr[i] unsignedCharValue];
-    }
-    NSLog(@"jsp-------[FIN, ACK]: %@", tempArr);
-    NSData * data1 = [NSData dataWithBytes:finACKToClient length:n1];
-    [self.packetFlow writePackets:@[data1] withProtocols:@[@AF_INET]];
-    
-}
-*/
 
 - (uint16_t)calculateChecksum:(unsigned char *)header length:(size_t)length {
     uint32_t sum = 0;
@@ -1101,28 +687,6 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
     }
     return ~((uint16_t)sum);
 }
-
-/*
-- (void)webSocketDidOpen:(hpSRWebSocket *)webSocket {
-    NSLog(@"jsp------ didopen");
-//    [self.myWebSocket send:@"sssss"];
-    [self setupTunnelNetwork];
-}
-
-- (void)webSocket:(hpSRWebSocket *)webSocket didFailWithError:(NSError *)error {
-    NSLog(@"jsp------ fail: %@", error);
-}
-
-- (void)webSocket:(hpSRWebSocket *)webSocket didCloseWithCode:(NSInteger)code reason:(NSString *)reason wasClean:(BOOL)wasClean {
-    NSLog(@"jsp-------- close");
-}
-
-- (void)webSocket:(hpSRWebSocket *)webSocket didReceiveMessage:(id)message {
-    NSData * data = (NSData *)message;
-    NSLog(@"jsp----- receive message: %@", data.hexString);
-    [self.packetFlow writePackets:@[data] withProtocols:@[@AF_INET]];
-}
-*/
 
 
 - (void)handleAppMessage:(NSData *)messageData completionHandler:(void (^)(NSData *))completionHandler {

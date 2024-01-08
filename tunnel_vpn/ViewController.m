@@ -18,6 +18,7 @@
 #define EXTENSION_BUNDLE_ID @"com.opentext.harris.tunnel-vpn.tunnelVPN"
 #define HOST @"127.0.0.1"
 #define PORT @"12355"
+#define HTTPSERVERPORT 23456
 
 static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
 
@@ -49,7 +50,6 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
                 NETunnelProviderProtocol * pro = (NETunnelProviderProtocol *)tunnelProviderManager.protocolConfiguration;
                 if ([pro.providerBundleIdentifier isEqualToString:EXTENSION_BUNDLE_ID]) {
                     self.manager = tunnelProviderManager;
-                    //                    [self startWSServer];
                     [self startServer];
                     break;
                 }
@@ -59,9 +59,9 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
     [[NSNotificationCenter defaultCenter] addObserverForName:NEVPNStatusDidChangeNotification object:self.manager.connection queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification * _Nonnull note) {
         [self updateVPNStatus];
     }];
-    [[NSNotificationCenter defaultCenter] addObserverForName:NEVPNConfigurationChangeNotification object:self.manager queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification * _Nonnull notification) {
-        [self notifyConfiguteStatus];
-    }];
+//    [[NSNotificationCenter defaultCenter] addObserverForName:NEVPNConfigurationChangeNotification object:self.manager queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification * _Nonnull notification) {
+//        [self notifyConfiguteStatus];
+//    }];
 }
 
 
@@ -111,13 +111,14 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
         NSLog(@"start TCP socket server error: %@", error.localizedDescription);
     } else {
         NSLog(@"start TCP socket server success......");
+        [self startWSServer];
     }
 }
 
 - (void)startWSServer {
     self.httpServer = [[HTTPServer alloc] init];
     [self.httpServer setConnectionClass:[MyHTTPConnection class]];
-    [self.httpServer setPort:23456];
+    [self.httpServer setPort:HTTPSERVERPORT];
     
     NSString *webPath = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"Web"];
     [self.httpServer setDocumentRoot:webPath];
@@ -147,7 +148,6 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
 
 - (void)startVPN {
     NSError * error = nil;
-    // get params from job
     // http://10.168.80.187/en-US/index.html
     NSDictionary * params = @{
         @"name": @"opop1.com",
@@ -164,6 +164,7 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
 
 - (void)stopVPN {
     [self.manager.connection stopVPNTunnel];
+    [self stopServer];
     NSUserDefaults *groupDefault = [[NSUserDefaults standardUserDefaults] initWithSuiteName:@"group.com.opentext.harris.tunnel-vpn"];
     [groupDefault removePersistentDomainForName:@"group.com.opentext.harris.tunnel-vpn"];
 }
@@ -190,9 +191,9 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
     }
 }
 
-- (void)notifyConfiguteStatus {
-    
-}
+//- (void)notifyConfiguteStatus {
+//    
+//}
 
 
 - (void)socket:(GCDAsyncSocket *)sock didReadData:(NSData *)data withTag:(long)tag {
@@ -204,14 +205,10 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
     [SharedSocketsManager sharedInstance].myws.receiveDataHandler = ^(GCDAsyncSocket *socket) {
         [socket readDataWithTimeout:-1 tag:tag];
     };
-//    NSMutableArray *socketArr = [SharedSocketsManager sharedInstance].socketClients;
-//    for (GCDAsyncSocket *socket in socketArr) {
-//        [socket readDataWithTimeout:-1 tag:tag];
-//    }
 }
 
 - (void)socket:(GCDAsyncSocket *)sock didWriteDataWithTag:(long)tag {
-//    NSLog(@"jsp----- ddiwrite: %@ %@", sock, [NSThread currentThread]);
+
 }
 
 - (void)socket:(GCDAsyncSocket *)sock didAcceptNewSocket:(GCDAsyncSocket *)newSocket
@@ -231,7 +228,7 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
 
 - (void)socketDidDisconnect:(GCDAsyncSocket *)sock withError:(NSError *)err {
     if (err) {
-//        NSLog(@"%@ DidDisconnect, error: %@", sock, err.localizedDescription);
+        NSLog(@"%@ DidDisconnect, error: %@", sock, err.localizedDescription);
     } else {
         @synchronized(self.clientSockets) {
             [[SharedSocketsManager sharedInstance].socketClients removeObject:sock];
@@ -239,33 +236,20 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
     }
 }
 
-//#pragma mark ---websocket delegate
-//- (void)webSocketDidOpen:(hpSRWebSocket *)webSocket {
-//    NSLog(@"jsp----- webSocketDidOpen");
-//}
-//
-//- (void)webSocket:(hpSRWebSocket *)webSocket didFailWithError:(NSError *)error {
-//    NSLog(@"jsp------ fail: %@", error);
-//}
-//
-//- (void)webSocket:(hpSRWebSocket *)webSocket didCloseWithCode:(NSInteger)code reason:(NSString *)reason wasClean:(BOOL)wasClean {
-//    NSLog(@"jsp-------- close");
-//}
-//
-//- (void)webSocket:(hpSRWebSocket *)webSocket didReceiveMessage:(id)message {
-//    NSLog(@"jsp----- receive message: %@", message);
-//}
 
-
-//- (void)stopServer {
-//    for (GCDAsyncSocket *sock in self.clientSockets) {
-//        [sock disconnectAfterWriting];
-//    }
-//    [self.socket disconnect];
-//    [self.socket setDelegate:nil];
-//    self.socket = nil;
-//    [self.clientSockets removeAllObjects];
-//}
+- (void)stopServer {
+    for (GCDAsyncSocket *sock in self.clientSockets) {
+        [sock disconnectAfterWriting];
+    }
+    [self.socket disconnect];
+    [self.socket setDelegate:nil];
+    self.socket = nil;
+    [self.clientSockets removeAllObjects];
+    
+    if (self.httpServer.isRunning) {
+        [self.httpServer stop];
+    }
+}
 
 //- (NSMutableArray *)getCorrectPacket:(NSData *)data {
 //    NSInteger totalLength = data.length;
