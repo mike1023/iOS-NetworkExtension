@@ -3,12 +3,7 @@
 #import "GCDAsyncSocket.h"
 #import "NSData+HexString.h"
 
-
-
-
 @implementation MyWebSocket
-
-
 
 - (void)didOpen
 {
@@ -59,66 +54,6 @@
     }
     
 }
-
-
-
-/*
-- (void)didReceiveMessage:(NSString *)msg
-{
-    NSLog(@"jsp----- websocket server receive msg from ws client 0000000: %@", msg);
-    NSString * payload = [msg substringFromIndex:22];
-
-    NSData * response = [self convertHexStrToData:payload];
-    NSString * str = [[NSString alloc] initWithData:response encoding:NSUTF8StringEncoding];
-    NSLog(@"jsp----- websocket server receive msg from ws client 111111: %@", str);
-
-    NSMutableArray * socketClients = [SharedSocketsManager sharedInstance].socketClients;
-    NSInteger len = msg.length;
-    // fix header length = 22
-    if (len > 22) {
-        NSString * header = [msg substringToIndex:22];
-        NSData * headerData = [self convertHexStrToData:header];
-        Byte * headerBytes = (Byte *)headerData.bytes;
-        Byte srcPort1 = headerBytes[9];
-        Byte srcPort2 = headerBytes[10];
-        
-        Byte srcport[] = {srcPort1, srcPort2};
-        UInt16 portValue;
-        memcpy(&portValue, srcport, sizeof(portValue));
-        // iOS is little-endian by default
-        UInt16 res = htons(portValue);
-        
-        NSString * payload = [msg substringFromIndex:22];
-        NSData * data = [self convertHexStrToData:payload];
-        NSLog(@"jsp----- send payload to socket: %@", data.description);
-//        GCDAsyncSocket * connectSocket = nil;
-        for (GCDAsyncSocket *socket in socketClients) {
-            if (socket.connectedPort == res) {
-                [socket writeData:data withTimeout:-1 tag:0];
-                [socket readDataWithTimeout:-1 tag:0];
-                break;
-            }
-        }
-//        if (headerBytes[1] == 0x00) { // success
-//            
-//        } else { // fail, remove socket client
-//            GCDAsyncSocket * failedSocket = nil;
-//            for (GCDAsyncSocket *socket in socketClients) {
-//                if (socket.connectedPort == res) {
-//                    failedSocket = socket;
-//                    break;
-//                }
-//            }
-//            [[SharedSocketsManager sharedInstance].socketClients removeObject:failedSocket];
-//        }
-    } else {
-        NSLog(@"jsp---- receive connect response....");
-        if (self.receiveMessageHandler) {
-            self.receiveMessageHandler(msg);
-        }
-    }
-}
- */
  
 
 - (NSData *)convertHexStrToData:(NSString *)str
@@ -171,14 +106,9 @@
     Byte ip4 = (Byte)[ipArr[3] intValue];
     
     //des port
-//    Byte desPort1 = 0x1f;
-//    Byte desPort2 = 0x90;
     NSUserDefaults *groupDefault = [[NSUserDefaults standardUserDefaults] initWithSuiteName:@"group.com.opentext.harris.tunnel-vpn"];
     UInt16 desport = [[groupDefault valueForKey:[NSString stringWithFormat:@"%d", srcPort]] unsignedShortValue];
     NSLog(@"jsp-------- group des port: %d", desport);
-    
-//    Byte desPort1 = 0x13;
-//    Byte desPort2 = 0x89;
     
     Byte desPort1 = (desport >> 8) & 0xff;
     Byte desPort2 = desport & 0xff;
@@ -217,9 +147,6 @@
     
     Byte desPort1 = (desport >> 8) & 0xff;
     Byte desPort2 = desport & 0xff;
-    
-//    Byte desPort1 = 0x13;
-//    Byte desPort2 = 0x89;
     
     Byte connectBytes[] = {
         version, cmd, ipPro, ip1, ip2, ip3, ip4,

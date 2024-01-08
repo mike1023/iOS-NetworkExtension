@@ -24,11 +24,10 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
 
 @interface ViewController ()<GCDAsyncSocketDelegate>
 @property (nonatomic, strong) NETunnelProviderManager * manager;
-
-//@property (nonatomic, strong) hpSRWebSocket * myWebSocket;
 @property (nonatomic, strong) GCDAsyncSocket *socket;
 @property (nonatomic, strong) dispatch_queue_t socketQueue;
 @property (nonatomic, strong) NSMutableArray<GCDAsyncSocket *> *clientSockets;
+
 @end
 
 @implementation ViewController
