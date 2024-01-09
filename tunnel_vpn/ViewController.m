@@ -42,7 +42,7 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
             NSLog(@"load preferences error: %@", error.localizedFailureReason);
             return;
         }
-        if (managers == nil || managers.count == 0) {
+        if (managers.count == 0) {
             [self configureManager];
         } else {
             for (NETunnelProviderManager *tunnelProviderManager in managers) {
@@ -58,10 +58,18 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
     [[NSNotificationCenter defaultCenter] addObserverForName:NEVPNStatusDidChangeNotification object:self.manager.connection queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification * _Nonnull note) {
         [self updateVPNStatus];
     }];
-//    [[NSNotificationCenter defaultCenter] addObserverForName:NEVPNConfigurationChangeNotification object:self.manager queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification * _Nonnull notification) {
-//        [self notifyConfiguteStatus];
-//    }];
 }
+
+- (IBAction)removePreference:(id)sender {
+    [self.manager removeFromPreferencesWithCompletionHandler:^(NSError * _Nullable error) {
+        if (error) {
+            NSLog(@"error...");
+        } else {
+            NSLog(@"1111");
+        }
+    }];
+}
+
 
 
 #pragma --mark configureManager
@@ -85,7 +93,6 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
                     NSLog(@"load error: %@", error.localizedDescription);
                     return;
                 }
-//                [self startWSServer];
                 [self startServer];
             }];
         }
@@ -150,7 +157,7 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
     // http://10.168.80.187/en-US/index.html
     NSDictionary * params = @{
         @"name": @"opop1.com",
-        @"ip": @"10.5.33.6"
+        @"ip": @"10.168.80.187"
     };
     [SharedSocketsManager sharedInstance].remoteIP = params[@"ip"];
     [self.manager.connection startVPNTunnelWithOptions:params andReturnError:nil];
@@ -189,10 +196,6 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
             break;
     }
 }
-
-//- (void)notifyConfiguteStatus {
-//    
-//}
 
 
 - (void)socket:(GCDAsyncSocket *)sock didReadData:(NSData *)data withTag:(long)tag {
@@ -249,25 +252,5 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
         [self.httpServer stop];
     }
 }
-
-//- (NSMutableArray *)getCorrectPacket:(NSData *)data {
-//    NSInteger totalLength = data.length;
-//    if (totalLength == 0) {
-//        return nil;
-//    }
-//
-//    NSInteger offset = 0;
-//    NSMutableArray * arr = [NSMutableArray array];
-//    while (offset < totalLength) {
-//        NSData * temp = [data subdataWithRange:NSMakeRange(2 + offset, 2)];
-//        unsigned result = 0;
-//        NSScanner *scanner = [NSScanner scannerWithString:[temp hexString]];
-//        [scanner scanHexInt:&result];
-//        NSData * ele = [data subdataWithRange:NSMakeRange(offset, result)];
-//        [arr addObject:ele];
-//        offset += result;
-//    }
-//    return arr;
-//}
 
 @end
