@@ -39,7 +39,6 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
     self.userGroupDefaults = [[NSUserDefaults standardUserDefaults] initWithSuiteName:@"group.com.opentext.harris.tunnel-vpn"];
     self.completionHandler = completionHandler;
     [self setupTunnelNetwork];
-
 }
 
 - (void)stopTunnelWithReason:(NEProviderStopReason)reason completionHandler:(void (^)(void))completionHandler {
@@ -87,7 +86,6 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
     __weak typeof(self) weakSelf = self;
     [self setTunnelNetworkSettings:settings completionHandler:^(NSError * _Nullable error) {
         if (error) {
-//            NSLog(@"jsp--- error: %@", error.localizedDescription);
             weakSelf.completionHandler(error);
         } else {
             weakSelf.completionHandler(nil);
@@ -116,7 +114,6 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
 - (void)parsePacket:(NSData *)packet {
     NSLog(@"jsp---- read from tun0: %@", packet.hexString);
     Byte *byteArr = (Byte *)packet.bytes;
-    NSArray * arr = [self.routeIP componentsSeparatedByString:@"."];
     
     // we only parse IPv4 packet now.
     NSUInteger ipVersion = [self getIPVersion:byteArr];
@@ -124,7 +121,6 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
         // 1. is it a UDP
         TransportProtocol transProtocol = [self getTransProtocol:byteArr];
         if (transProtocol == TCP) {
-            UInt16 len = [self getTotalLength:byteArr];
             // 1. read: 10.10.10.10:1234 ----> 1.2.3.4:80
             // 2. change to: 1.2.3.4:1234 -----> 10.10.10.10:12355, and write to tun0
             // 3. read: 10.10.10.10:12355 -----> 1.2.3.4:1234
@@ -299,19 +295,18 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
             // 2. destination port: generally, 53 is for DNS query
             UInt16 desPort = [self getDestinationPort:byteArr];
 //            NSLog(@"jsp------- DNS port: %d", desPort);
-            if (desPort != 53) {
-                return;
-            }
-            // 3. only reply DNS query which its type is 'A'(IPv4)
-            // 00 1C (28): AAAA(IPv6)
-            // 00 41 (65): HTTPS
-            // 00 01 (1):  A(IPv4)
-            UInt16 type = [self getDNSQueryType:byteArr];
-            if (type == 1) {
-                [self getDomainName:byteArr];
-                // 3. get the target DNS query domainame
-                if ([self isPacketForPrivateDomainQuery:byteArr]) {
-                    [self generateDNSResponsePacket:byteArr];
+            if (desPort == 53) {
+                // 3. only reply DNS query which its type is 'A'(IPv4)
+                // 00 1C (28): AAAA(IPv6)
+                // 00 41 (65): HTTPS
+                // 00 01 (1):  A(IPv4)
+                UInt16 type = [self getDNSQueryType:byteArr];
+                if (type == 1) {
+                    [self getDomainName:byteArr];
+                    // 3. get the target DNS query domainame
+                    if ([self isPacketForPrivateDomainQuery:byteArr]) {
+                        [self generateDNSResponsePacket:byteArr];
+                    }
                 }
             }
         }
