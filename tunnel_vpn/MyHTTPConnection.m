@@ -5,7 +5,6 @@
 #import "GCDAsyncSocket.h"
 #import "MyWebSocket.h"
 #import "HTTPLogging.h"
-#import "ConnectorWebSocket.h"
 #import "HTTPDataResponse.h"
 #import "SharedSocketsManager.h"
 

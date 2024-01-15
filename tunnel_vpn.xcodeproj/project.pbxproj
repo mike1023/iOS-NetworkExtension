@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		6F9464B02A85D2C200575DA5 /* NSData+HexString.m in Sources */ = {isa = PBXBuildFile; fileRef = 6F9464AE2A85D2C200575DA5 /* NSData+HexString.m */; };
 		6F9464B12A85D2C200575DA5 /* NSData+HexString.m in Sources */ = {isa = PBXBuildFile; fileRef = 6F9464AE2A85D2C200575DA5 /* NSData+HexString.m */; };
+		6F9DD7632B4FB0F500DE3B59 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6F9DD7622B4FB0F500DE3B59 /* WebKit.framework */; };
+		6F9DD7652B4FC1B600DE3B59 /* SafariServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6F9DD7642B4FC1B600DE3B59 /* SafariServices.framework */; };
 		6FC44B332B07133A00FB0E6D /* HTTPErrorResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 6FC44B132B07133A00FB0E6D /* HTTPErrorResponse.m */; };
 		6FC44B342B07133A00FB0E6D /* HTTPErrorResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 6FC44B132B07133A00FB0E6D /* HTTPErrorResponse.m */; };
 		6FC44B352B07133A00FB0E6D /* HTTPDataResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 6FC44B142B07133A00FB0E6D /* HTTPDataResponse.m */; };
@@ -52,7 +54,6 @@
 		6FC44B782B0744FB00FB0E6D /* NSData+SRB64Additions.m in Sources */ = {isa = PBXBuildFile; fileRef = 6FC44B712B0744FB00FB0E6D /* NSData+SRB64Additions.m */; };
 		6FC44B792B0744FB00FB0E6D /* base64.c in Sources */ = {isa = PBXBuildFile; fileRef = 6FC44B732B0744FB00FB0E6D /* base64.c */; };
 		6FC44B7A2B0744FB00FB0E6D /* base64.c in Sources */ = {isa = PBXBuildFile; fileRef = 6FC44B732B0744FB00FB0E6D /* base64.c */; };
-		6FD800C52B0DFB6400DE9000 /* ConnectorWebSocket.m in Sources */ = {isa = PBXBuildFile; fileRef = 6FD800C42B0DFB6300DE9000 /* ConnectorWebSocket.m */; };
 		6FF0EF072A0DDC8700BD5145 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 6FF0EF062A0DDC8700BD5145 /* AppDelegate.m */; };
 		6FF0EF0A2A0DDC8700BD5145 /* SceneDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 6FF0EF092A0DDC8700BD5145 /* SceneDelegate.m */; };
 		6FF0EF0D2A0DDC8700BD5145 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 6FF0EF0C2A0DDC8700BD5145 /* ViewController.m */; };
@@ -115,9 +116,10 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		6F36BE812AFCA89B00F7EEA7 /* Packet.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Packet.h; path = ../../../Packet.h; sourceTree = "<group>"; };
 		6F9464AE2A85D2C200575DA5 /* NSData+HexString.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSData+HexString.m"; sourceTree = "<group>"; };
 		6F9464AF2A85D2C200575DA5 /* NSData+HexString.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSData+HexString.h"; sourceTree = "<group>"; };
+		6F9DD7622B4FB0F500DE3B59 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
+		6F9DD7642B4FC1B600DE3B59 /* SafariServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SafariServices.framework; path = System/Library/Frameworks/SafariServices.framework; sourceTree = SDKROOT; };
 		6FBCEB242B47B27E007D4FBE /* tunnel_vpnDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = tunnel_vpnDebug.entitlements; sourceTree = "<group>"; };
 		6FBCEB252B47B2A0007D4FBE /* tunnelVPNDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = tunnelVPNDebug.entitlements; sourceTree = "<group>"; };
 		6FC44B0C2B07133A00FB0E6D /* HTTPConnection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HTTPConnection.h; sourceTree = "<group>"; };
@@ -167,8 +169,6 @@
 		6FC44B722B0744FB00FB0E6D /* SRWebSocket.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SRWebSocket.h; sourceTree = "<group>"; };
 		6FC44B732B0744FB00FB0E6D /* base64.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = base64.c; sourceTree = "<group>"; };
 		6FC44B742B0744FB00FB0E6D /* NSData+SRB64Additions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSData+SRB64Additions.h"; sourceTree = "<group>"; };
-		6FD800C32B0DFB6300DE9000 /* ConnectorWebSocket.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConnectorWebSocket.h; sourceTree = "<group>"; };
-		6FD800C42B0DFB6300DE9000 /* ConnectorWebSocket.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ConnectorWebSocket.m; sourceTree = "<group>"; };
 		6FF0EF022A0DDC8700BD5145 /* tunnel_vpn.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = tunnel_vpn.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6FF0EF052A0DDC8700BD5145 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		6FF0EF062A0DDC8700BD5145 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -222,6 +222,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6F9DD7652B4FC1B600DE3B59 /* SafariServices.framework in Frameworks */,
+				6F9DD7632B4FB0F500DE3B59 /* WebKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -360,8 +362,6 @@
 				6FC44B552B07337300FB0E6D /* MyHTTPConnection.m */,
 				6FC44B592B07339D00FB0E6D /* MyWebSocket.h */,
 				6FC44B582B07339D00FB0E6D /* MyWebSocket.m */,
-				6FD800C32B0DFB6300DE9000 /* ConnectorWebSocket.h */,
-				6FD800C42B0DFB6300DE9000 /* ConnectorWebSocket.m */,
 				6FFCDE702B1471DC00F82A23 /* SharedSocketsManager.h */,
 				6FFCDE712B1471DC00F82A23 /* SharedSocketsManager.m */,
 				6FF0EF0E2A0DDC8700BD5145 /* Main.storyboard */,
@@ -376,6 +376,8 @@
 		6FF0EF242A0DDDC600BD5145 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				6F9DD7642B4FC1B600DE3B59 /* SafariServices.framework */,
+				6F9DD7622B4FB0F500DE3B59 /* WebKit.framework */,
 				6FF0EF342A0DDE3900BD5145 /* Network.framework */,
 				6FF0EF252A0DDDC600BD5145 /* NetworkExtension.framework */,
 			);
@@ -388,7 +390,6 @@
 				6FBCEB252B47B2A0007D4FBE /* tunnelVPNDebug.entitlements */,
 				6FF0EF282A0DDDC700BD5145 /* PacketTunnelProvider.h */,
 				6FF0EF292A0DDDC700BD5145 /* PacketTunnelProvider.m */,
-				6F36BE812AFCA89B00F7EEA7 /* Packet.h */,
 				6FF0EF2B2A0DDDC700BD5145 /* Info.plist */,
 				6FF0EF2C2A0DDDC700BD5145 /* tunnelVPN.entitlements */,
 			);
@@ -601,7 +602,6 @@
 				6FC44B372B07133A00FB0E6D /* HTTPDynamicFileResponse.m in Sources */,
 				6FF0EF072A0DDC8700BD5145 /* AppDelegate.m in Sources */,
 				6FF0EF182A0DDC8900BD5145 /* main.m in Sources */,
-				6FD800C52B0DFB6400DE9000 /* ConnectorWebSocket.m in Sources */,
 				6FF0EF652A0E07BA00BD5145 /* DDMultiFormatter.m in Sources */,
 				6FC44B4D2B07133A00FB0E6D /* DDNumber.m in Sources */,
 				6F9464B02A85D2C200575DA5 /* NSData+HexString.m in Sources */,

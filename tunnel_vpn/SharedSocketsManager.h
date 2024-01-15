@@ -7,7 +7,7 @@
 
 #import <Foundation/Foundation.h>
 #import "MyWebSocket.h"
-#import "ConnectorWebSocket.h"
+
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -16,10 +16,9 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonatomic, strong) MyWebSocket *myws;
 @property(nonatomic, strong) NSMutableArray * socketClients;
 @property(nonatomic, copy) NSString * remoteIP;
-
+@property(nonatomic, strong) NSMutableDictionary * portMap;
 
 + (SharedSocketsManager *)sharedInstance;
-- (void)sendPayload:(NSData *)payload;
 @end
 
 NS_ASSUME_NONNULL_END

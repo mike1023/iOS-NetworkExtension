@@ -1,6 +1,5 @@
 #import <Foundation/Foundation.h>
 #import "WebSocket.h"
-#import "ConnectorWebSocket.h"
 #import "GCDAsyncSocket.h"
 
 

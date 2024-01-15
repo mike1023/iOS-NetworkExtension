@@ -7,7 +7,8 @@
 
 #import "PacketTunnelProvider.h"
 #import "NSData+HexString.h"
-#import "Packet.h"
+#import "GCDAsyncSocket.h"
+
 
 
 typedef NS_ENUM(UInt8, TransportProtocol) {
@@ -16,36 +17,72 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
 };
 
 #define TCPLISTENINGPORT 12355
+static const char *CLIENT_QUEUE_NAME = "com.opentext.tunnel_vpn.client";
 
-
-@interface PacketTunnelProvider ()
+@interface PacketTunnelProvider ()<GCDAsyncSocketDelegate>
 @property (nonatomic, copy) void (^completionHandler)(NSError *);
 
-@property (nonatomic, copy) NSString * domainName;
 @property (nonatomic, copy) NSString * routeIP;
 @property (nonatomic, copy) NSArray * domainArr;
 
+@property (nonatomic, copy) NSString * requestDomainName;
+@property (nonatomic, copy) NSArray * userDomainArr;
+
 @property (nonatomic, strong) NSMutableDictionary * connectionMap;
 @property (nonatomic, strong) NSUserDefaults * userGroupDefaults;
+
+@property (nonatomic, strong) GCDAsyncSocket* socketClient;
+@property (nonatomic, strong) dispatch_queue_t socketQueue;
+
 @end
 
 @implementation PacketTunnelProvider
 
 - (void)startTunnelWithOptions:(NSDictionary *)options completionHandler:(void (^)(NSError *))completionHandler {
     // Add code here to start the process of connecting the tunnel.
-    self.domainName = options[@"name"];
+//    self.domainName = options[@"name"];
+    self.userDomainArr = options[@"name"];
     self.routeIP = options[@"ip"];
+    self.domainArr = [NSArray array];
     self.connectionMap = [NSMutableDictionary dictionary];
-    self.userGroupDefaults = [[NSUserDefaults standardUserDefaults] initWithSuiteName:@"group.com.opentext.harris.tunnel-vpn"];
+//    self.userGroupDefaults = [[NSUserDefaults standardUserDefaults] initWithSuiteName:@"group.com.opentext.harris.tunnel-vpn"];
     self.completionHandler = completionHandler;
+    [self setupSocketClient];
+//    [self setupTunnelNetwork];
+}
+
+- (void)setupSocketClient {
+    dispatch_queue_attr_t queueAttributes = dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL, QOS_CLASS_UTILITY, 0);
+    self.socketQueue = dispatch_queue_create(CLIENT_QUEUE_NAME, queueAttributes);
+    self.socketClient = [[GCDAsyncSocket alloc] initWithDelegate:self delegateQueue:self.socketQueue];
+    
+    NSError *error = nil;
+    if (![self.socketClient connectToHost:@"127.0.0.1" onPort:12355 error:&error]) {
+        NSLog(@"jsp--- socket client connect failed: %@", error.localizedFailureReason);
+        return;
+    }
+}
+
+#pragma mark --socket delegate
+
+- (void)socket:(GCDAsyncSocket *)sock didConnectToHost:(NSString *)host port:(uint16_t)port {
+    NSLog(@"jsp----- didConnectToHost");
     [self setupTunnelNetwork];
 }
 
+- (void)socket:(GCDAsyncSocket *)sock didWriteDataWithTag:(long)tag {
+    NSLog(@"jsp----- didWriteDataWithTag:%d", tag);
+}
+
+- (void)socketDidDisconnect:(GCDAsyncSocket *)sock withError:(NSError *)err {
+    NSLog(@"jsp----- socketDidDisconnect: %@", err);
+}
+
+#pragma mark --------
 - (void)stopTunnelWithReason:(NEProviderStopReason)reason completionHandler:(void (^)(void))completionHandler {
     // Add code here to start the process of stopping the tunnel.
     [self.connectionMap removeAllObjects];
-    NSUserDefaults *groupDefault = [[NSUserDefaults standardUserDefaults] initWithSuiteName:@"group.com.opentext.harris.tunnel-vpn"];
-    [groupDefault removePersistentDomainForName:@"group.com.opentext.harris.tunnel-vpn"];
+//    [self.userGroupDefaults removePersistentDomainForName:@"group.com.opentext.harris.tunnel-vpn"];
     self.userGroupDefaults = nil;
     completionHandler();
 }
@@ -79,7 +116,7 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
     
     //dns setting
     NEDNSSettings * dnsSettings = [[NEDNSSettings alloc] initWithServers:@[@"1.1.1.1"]];
-    dnsSettings.matchDomains = @[self.domainName];
+    dnsSettings.matchDomains = self.userDomainArr;
     dnsSettings.matchDomainsNoSearch = YES;
     settings.DNSSettings = dnsSettings;
     
@@ -111,8 +148,17 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
     [arr exchangeObjectAtIndex:15 withObjectAtIndex:19];
 }
 
+- (NSData *)convertPortMapToData:(NSMutableDictionary *)dict {
+    NSError *error;
+    NSData *dataFromDict = [NSJSONSerialization dataWithJSONObject:dict options:NSJSONWritingPrettyPrinted error:&error];
+    if (error) {
+        NSLog(@"jsp----- convert failed: %@", error);
+        return nil;
+    }
+    return dataFromDict;
+}
+
 - (void)parsePacket:(NSData *)packet {
-    NSLog(@"jsp---- read from tun0: %@", packet.hexString);
     Byte *byteArr = (Byte *)packet.bytes;
     
     // we only parse IPv4 packet now.
@@ -133,14 +179,15 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
             // 1. read: 10.10.10.10:1234 ----> 1.2.3.4:80
             if (byteArr[12] == 0x0a && byteArr[13] == 0x0a &&
                 byteArr[14] == 0x0a && byteArr[15] == 0x0a &&
-                srcPort != TCPLISTENINGPORT) {
+                srcPort != 12355) {
+                NSLog(@"jsp---- TCP  from tun0: %@", packet.hexString);
+
                 BOOL isOdd = NO;
-                
                 NSString * key = [NSString stringWithFormat:@"%d", srcPort];
                 NSString * value = [self.connectionMap valueForKey:key];
-                [self.userGroupDefaults setValue:@(desPort) forKey:key];
                 if (value == nil) {
                     [self.connectionMap setObject:[NSString stringWithFormat:@"%d", desPort] forKey:key];
+                    [self.socketClient writeData:[self convertPortMapToData:self.connectionMap] withTimeout:-1 tag:101];
                 }
                 UInt16 len = [self getTotalLength:byteArr];
                 if (len % 2 != 0) {
@@ -172,9 +219,9 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
                     @(0x00), @(0x06), @(tcpLen1), @(tcpLen2)
                 ];
                 
-                //change des port to TCP server listenning port: 12355
-                Byte desPort1 = (TCPLISTENINGPORT >> 8) & 0xff;
-                Byte desPort2 = TCPLISTENINGPORT & 0xff;
+                //change des port to TCP server listenning port
+                Byte desPort1 = (12355 >> 8) & 0xff;
+                Byte desPort2 = 12355 & 0xff;
                 resTCP[2] = @(desPort1);
                 resTCP[3] = @(desPort2);
                 
@@ -207,13 +254,16 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
                     reveive[i] = [tempArr[i] unsignedCharValue];
                 }
                 NSData * data = [NSData dataWithBytes:reveive length:sizeof(reveive)];
+                NSLog(@"jsp---- 1111 send to tun0: %@", data.hexString);
                 [self.packetFlow writePackets:@[data] withProtocols:@[@AF_INET]];
             }
             
             // 3. read: 10.10.10.10:12355 -----> 1.2.3.4:1234
             if (byteArr[12] == 0x0a && byteArr[13] == 0x0a &&
                 byteArr[14] == 0x0a && byteArr[15] == 0x0a &&
-                srcPort == TCPLISTENINGPORT) {
+                srcPort == 12355) {
+                NSLog(@"jsp---- 12355 read from tun0: %@", packet.hexString);
+
                 // isOdd: if totalLen is odd, we need add a 0x00 byte at the last of packet, for checksum
                 BOOL isOdd = NO;
                 UInt16 len = [self getTotalLength:byteArr];
@@ -289,12 +339,12 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
                     reveive[i] = [tempArr[i] unsignedCharValue];
                 }
                 NSData * data = [NSData dataWithBytes:reveive length:sizeof(reveive)];
+                NSLog(@"jsp---- 12355 send to tun0: %@", data.hexString);
                 [self.packetFlow writePackets:@[data] withProtocols:@[@AF_INET]];
             }
         } else if (transProtocol == UDP) {
             // 2. destination port: generally, 53 is for DNS query
             UInt16 desPort = [self getDestinationPort:byteArr];
-//            NSLog(@"jsp------- DNS port: %d", desPort);
             if (desPort == 53) {
                 // 3. only reply DNS query which its type is 'A'(IPv4)
                 // 00 1C (28): AAAA(IPv6)
@@ -302,73 +352,63 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
                 // 00 01 (1):  A(IPv4)
                 UInt16 type = [self getDNSQueryType:byteArr];
                 if (type == 1) {
-                    [self getDomainName:byteArr];
                     // 3. get the target DNS query domainame
                     if ([self isPacketForPrivateDomainQuery:byteArr]) {
                         [self generateDNSResponsePacket:byteArr];
                     }
+                } else {
+                    return;
                 }
             }
         }
     }
 }
 
-- (NSArray *)getDomainName:(unsigned char *)byteArr {
-    NSMutableString * tempStr = [[NSMutableString alloc] initWithString:@""];
-    NSString * domainName = self.domainName;
-    NSArray * arr = [domainName componentsSeparatedByString:@"."];
-    for (int i = 0; i < arr.count; i++) {
-        NSString * s = arr[i];
-        NSInteger len = s.length;
-        [tempStr appendString:[NSString stringWithFormat:@"%ld%@", (long)len, s]];
-    }
-    [tempStr appendString:@"0"];
-    
-    NSInteger tempLen = tempStr.length;
-    NSMutableArray * tempArr = [NSMutableArray array];
-    int n = 0;
-    for (int i = 40; i < tempLen + 40; i++) {
-        Byte byte = byteArr[i];
-        [tempArr addObject:@(byte)];
-        n++;
-    }
-    self.domainArr = [tempArr copy];
-    return self.domainArr;
-}
 
 - (BOOL)isPacketForPrivateDomainQuery:(unsigned char *)byteArr {
-    NSMutableString * domainStr = [[NSMutableString alloc] initWithString:@""];
-    NSMutableString * tempStr = [[NSMutableString alloc] initWithString:@""];
-    NSString * domainName = self.domainName;
-    NSArray * arr = [domainName componentsSeparatedByString:@"."];
-    for (int i = 0; i < arr.count; i++) {
-        NSString * s = arr[i];
-        NSInteger len = s.length;
-        [domainStr appendString:s];
-        [tempStr appendString:[NSString stringWithFormat:@"%ld%@", (long)len, s]];
-    }
-    [tempStr appendString:@"0"];
-    
-    
-    NSInteger len = domainStr.length;
-    NSInteger tempLen = tempStr.length;
-    char temp[len + 1];
-    int n = 0;
-    for (int i = 40; i < tempLen + 40; i++) {
+    UInt16 totalLen = [self getTotalLength:byteArr];
+    // domain name start from index of 40, after domain name, type field has 2 bytes, class: IN has two 2 bytes.
+    UInt16 domainNamePartLen = totalLen - 40 - 2 - 2;
+    NSMutableArray * tempArr = [NSMutableArray array];
+    NSMutableArray * res = [NSMutableArray array];
+    for (int i = 40; i < domainNamePartLen + 40; i++) {
         char byte = byteArr[i];
+        [res addObject:@(byte)];
         // In ASCII, printable characters are in the range of 0x20 (32 in decimal) to 0x7E (126 in decimal).
         if (byte >= 0x20 && byte <= 0x7e) {
-            temp[n] = byte;
-            n++;
+            [tempArr addObject:@(byte)];
         }
     }
-    temp[len] = '\0';
-    // temp must end with a NULL character, so we need add '\0' at the end
-    NSString * finalStr = [[NSString alloc] initWithCString:temp encoding:NSUTF8StringEncoding];
-    if (![finalStr isEqualToString:domainStr]) {
-        return NO;
+    NSUInteger count = tempArr.count;
+    char domain[count + 1];
+    for (int i = 0; i < count; i++) {
+        NSNumber * obj = tempArr[i];
+        domain[i] = [obj unsignedShortValue];
     }
-    return YES;
+    domain[count] = '\0';
+    // domainStr: www.baidu.com -----> wwwbaiducom
+    NSString * domainStr = [[NSString alloc] initWithCString:domain encoding:NSUTF8StringEncoding];
+    
+    for (NSString *domain in self.userDomainArr) {
+        NSString * domainWithoutHttp = domain;
+        if ([domain hasPrefix:@"http://"]) {
+            domainWithoutHttp = [domain substringFromIndex:7];
+        }
+        if ([domain hasPrefix:@"https://"]) {
+            domainWithoutHttp = [domain substringFromIndex:8];
+        }
+        
+        NSArray * tempArr = [domainWithoutHttp componentsSeparatedByString:@"."];
+        NSString * domainCombined = [tempArr componentsJoinedByString:@""];
+        if ([domainCombined isEqualToString:domainStr]) {
+            self.requestDomainName = domainWithoutHttp;
+            self.domainArr = [res copy];
+            NSLog(@"jsp---requestDomainName: %@", self.requestDomainName);
+            NSLog(@"jsp--- domainArr: %@", self.domainArr);
+            return YES;
+        }
+    }
+    return NO;
 }
 
 
@@ -717,34 +757,5 @@ typedef NS_ENUM(UInt8, TransportProtocol) {
 //    }
 //    return arr;
 //}
-
-/*
-- (void)socket:(GCDAsyncSocket *)sock didReadData:(NSData *)data withTag:(long)tag {
-    NSLog(@"tcp server read:------ %@", [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
-    [sock readDataWithTimeout:-1 tag:tag];
-}
-
-- (void)socket:(GCDAsyncSocket *)sock didAcceptNewSocket:(GCDAsyncSocket *)newSocket
-{
-    NSLog(@"new socket connect: %@", newSocket);
-    // in current logic, we should ensure connector connects with server first, so
-    // the first object in self.clientSockets should be connector client.
-    // This method is executed on the socketQueue (not the main thread)
-    @synchronized(self.clientSockets) {
-        [self.clientSockets addObject:newSocket];
-        [newSocket readDataWithTimeout:-1 tag:100];
-    }
-}
-
-- (void)socketDidDisconnect:(GCDAsyncSocket *)sock withError:(NSError *)err {
-    if (err) {
-        NSLog(@"DidDisconnect error: %@", err.localizedDescription);
-    } else if (sock != self.socket) {
-        @synchronized(self.clientSockets) {
-            [self.clientSockets removeObject:sock];
-        }
-    }
-}
-*/
 
 @end

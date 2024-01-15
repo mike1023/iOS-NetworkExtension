@@ -45,7 +45,6 @@
                 self.receiveDataHandler(currentSocket);
             }
         } else {
-            NSLog(@"jsp---- receive connect response....");
             if (self.connectionResponseHandler) {
                 for (GCDAsyncSocket *socket in socketClients) {
                     if (socket.connectedPort == res) {
@@ -57,6 +56,12 @@
             }
         }
     }
+}
+
+- (UInt16)getDesPort:(UInt16)srcPort {
+    NSMutableDictionary * portMap = [SharedSocketsManager sharedInstance].portMap;
+    UInt16 desport = [[portMap valueForKey:[NSString stringWithFormat:@"%d", srcPort]] intValue];
+    return desport;
 }
  
 
@@ -77,9 +82,7 @@
     Byte ip4 = (Byte)[ipArr[3] intValue];
     
     //des port
-    NSUserDefaults *groupDefault = [[NSUserDefaults standardUserDefaults] initWithSuiteName:@"group.com.opentext.harris.tunnel-vpn"];
-    UInt16 desport = [[groupDefault valueForKey:[NSString stringWithFormat:@"%d", srcPort]] unsignedShortValue];
-    NSLog(@"jsp-------- group des port: %d", desport);
+    UInt16 desport = [self getDesPort:srcPort];
     
     Byte desPort1 = (desport >> 8) & 0xff;
     Byte desPort2 = desport & 0xff;
@@ -111,10 +114,8 @@
     Byte ip4 = (Byte)[ipArr[3] intValue];
     
     // des port
-    // we should get des port from app groups
-    NSUserDefaults *groupDefault = [[NSUserDefaults standardUserDefaults] initWithSuiteName:@"group.com.opentext.harris.tunnel-vpn"];
-    UInt16 desport = [[groupDefault valueForKey:[NSString stringWithFormat:@"%d", srcPort]] unsignedShortValue];
-    NSLog(@"jsp-------- group des port: %d", desport);
+    // we should get des port from portMap
+    UInt16 desport = [self getDesPort:srcPort];
     
     Byte desPort1 = (desport >> 8) & 0xff;
     Byte desPort2 = desport & 0xff;
