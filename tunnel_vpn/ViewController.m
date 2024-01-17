@@ -21,7 +21,6 @@
 #define HTTPSERVERPORT 23456
 
 static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
-static const char *UDP_QUEUE_NAME = "com.opentext.tunnel_vpn.udp";
 
 
 @interface ViewController ()<GCDAsyncSocketDelegate>
@@ -257,7 +256,7 @@ static const char *UDP_QUEUE_NAME = "com.opentext.tunnel_vpn.udp";
 
 - (void)socket:(GCDAsyncSocket *)sock didAcceptNewSocket:(GCDAsyncSocket *)newSocket
 {
-    NSLog(@"jsp-----%@ new socket connect: %@ %d", sock, newSocket, newSocket.connectedPort);
+    NSLog(@"jsp-----%@ new socket connect: %@ %d %@", sock, newSocket, newSocket.connectedPort, newSocket.localHost);
     if (self.clientID == -1) {
         self.clientID += 1;
         @synchronized (self.socketForMapArr) {
