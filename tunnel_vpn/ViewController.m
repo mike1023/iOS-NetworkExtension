@@ -184,10 +184,9 @@ static const char *UDP_QUEUE_NAME = "com.opentext.tunnel_vpn.udp";
 //    [self startServer];
     NSError * error = nil;
     NSDictionary * params = @{
-        @"name": @[@"opop80.com"],
+        @"name": @[@"opop80.com", @"opop90.com"],
         @"ip": @"10.168.80.187"
     };
-    [SharedSocketsManager sharedInstance].remoteIP = params[@"ip"];
     [self.manager.connection startVPNTunnelWithOptions:params andReturnError:nil];
     if (error) {
         NSLog(@"error: %@", error.localizedDescription);
