@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="22505" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="22155" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
     <device id="retina6_12" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="22504"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="22131"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
@@ -53,14 +53,6 @@
                                     <action selector="startWS:" destination="BYZ-38-t0r" eventType="touchUpInside" id="Zmt-fT-bVR"/>
                                 </connections>
                             </button>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="cJz-Zy-H2P">
-                                <rect key="frame" x="9" y="227" width="211" height="35"/>
-                                <state key="normal" title="Button"/>
-                                <buttonConfiguration key="configuration" style="filled" title="send to webserver client"/>
-                                <connections>
-                                    <action selector="sendToWSClient:" destination="BYZ-38-t0r" eventType="touchUpInside" id="2az-Av-Toj"/>
-                                </connections>
-                            </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="V3m-yD-hjO">
                                 <rect key="frame" x="9" y="277" width="168" height="35"/>
                                 <state key="normal" title="Button"/>
@@ -95,13 +87,11 @@
                             <constraint firstItem="z0Q-7G-vOa" firstAttribute="top" secondItem="fD3-5N-qHG" secondAttribute="bottom" constant="8" id="3aM-oA-wMH"/>
                             <constraint firstItem="CFu-yQ-IxZ" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="9" id="5EM-2P-j1f"/>
                             <constraint firstItem="fD3-5N-qHG" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="54" id="5KA-1K-R4Y"/>
-                            <constraint firstItem="cJz-Zy-H2P" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" constant="-82" id="JfE-Ck-FMd"/>
+                            <constraint firstItem="V3m-yD-hjO" firstAttribute="top" secondItem="z0Q-7G-vOa" secondAttribute="bottom" constant="65" id="B0e-wD-ua9"/>
                             <constraint firstItem="CFu-yQ-IxZ" firstAttribute="top" secondItem="V3m-yD-hjO" secondAttribute="bottom" constant="8" symbolic="YES" id="LkG-1R-Fvt"/>
                             <constraint firstItem="V3m-yD-hjO" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" constant="-103.5" id="MVl-bE-P5F"/>
-                            <constraint firstItem="V3m-yD-hjO" firstAttribute="top" secondItem="cJz-Zy-H2P" secondAttribute="bottom" constant="15" id="QCf-Qh-9cu"/>
                             <constraint firstItem="fD3-5N-qHG" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="Rdx-cG-Rhw"/>
                             <constraint firstItem="fD3-5N-qHG" firstAttribute="trailing" secondItem="6Tk-OE-BBY" secondAttribute="trailing" id="UPY-Yq-EvA"/>
-                            <constraint firstItem="cJz-Zy-H2P" firstAttribute="top" secondItem="z0Q-7G-vOa" secondAttribute="bottom" constant="15" id="Zfs-2R-40U"/>
                             <constraint firstItem="FBF-zI-cj2" firstAttribute="leading" secondItem="CFu-yQ-IxZ" secondAttribute="trailing" constant="20" id="dHb-BO-hUU"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="FBF-zI-cj2" secondAttribute="trailing" constant="16" id="hoM-Xx-Gx9"/>
                             <constraint firstItem="z0Q-7G-vOa" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" constant="-85.166666666666671" id="tIx-jt-rLB"/>

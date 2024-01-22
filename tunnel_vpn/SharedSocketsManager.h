@@ -15,8 +15,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property(nonatomic, strong) MyWebSocket *myws;
 @property(nonatomic, strong) NSMutableArray * socketClients;
-@property(nonatomic, copy) NSString * remoteIP;
 @property(nonatomic, strong) NSMutableDictionary * portMap;
+@property(nonatomic, strong) NSMutableDictionary * domainIPMap;
+
 
 + (SharedSocketsManager *)sharedInstance;
 @end

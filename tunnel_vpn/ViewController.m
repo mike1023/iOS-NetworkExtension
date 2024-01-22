@@ -31,6 +31,8 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
 @property (nonatomic, assign) NSInteger clientID;
 @property (nonatomic, strong) NSMutableArray * socketForMapArr;
 
+@property (nonatomic, strong) NSMutableSet * randomIPSet;
+
 
 @end
 
@@ -40,6 +42,9 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
     [super viewDidLoad];
     self.clientID = -1;
     self.socketForMapArr = [NSMutableArray array];
+    self.tf.text = @"aserver002.uftmobile.admlabs.aws.swinfra.net:8080";
+//    self.tf.text = @"www.baidu.com";
+
     [SharedSocketsManager sharedInstance].socketClients = [NSMutableArray array];
     dispatch_queue_attr_t queueAttributes = dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL, QOS_CLASS_UTILITY, 0);
     self.socketQueue = dispatch_queue_create(QUEUE_NAME, queueAttributes);
@@ -81,6 +86,8 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
     if (self.tf.text.length > 0) {
         NSString * text = [NSString stringWithFormat:@"http://%@", self.tf.text];
         NSURL * url = [NSURL URLWithString:text];
+        
+        
         SFSafariViewControllerConfiguration * config = [[SFSafariViewControllerConfiguration alloc] init];
         config.entersReaderIfAvailable = YES;
         SFSafariViewController * vc = [[SFSafariViewController alloc] initWithURL:url configuration:config];
@@ -125,10 +132,6 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
         return;
     }
     [self startWSServer];
-}
-
-- (IBAction)sendToWSClient:(id)sender {
-    [[SharedSocketsManager sharedInstance].myws sendConnectForSocket:nil];
 }
 
 - (void)startServer {
@@ -178,15 +181,34 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
         [self stopVPN];
     }
 }
+- (NSMutableDictionary *)generateRouteIPForDomain:(NSArray *)domainArr {
+    NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+    self.randomIPSet = [NSMutableSet set];
+    
+    for (NSString *domain in domainArr) {
+        NSString * randomIP = [self generateRandomIP];
+        [dict setObject:randomIP forKey:domain];
+    }
+    return dict;
+}
+- (NSString *)generateRandomIP {
+    // arc4random() % 11, return a number between [0, 10];
+    // 10.0.0.0 ----- 10.10.10.9
+    NSString * ipStr = [NSString stringWithFormat:@"10.%d.%d.%d", arc4random() % 11, arc4random() % 11, arc4random() % 10];
+    while ([self.randomIPSet containsObject:ipStr]) {
+        ipStr = [NSString stringWithFormat:@"10.%d.%d.%d", arc4random() % 11, arc4random() % 11, arc4random() % 10];
+    }
+    [self.randomIPSet addObject:ipStr];
+    return ipStr;
+}
 
 - (void)startVPN {
 //    [self startServer];
     NSError * error = nil;
-    NSDictionary * params = @{
-        @"name": @[@"opop80.com", @"opop90.com"],
-        @"ip": @"10.168.80.187"
-    };
-    [self.manager.connection startVPNTunnelWithOptions:params andReturnError:nil];
+    NSArray * domains = @[@"server002.uftmobile.admlabs.aws.swinfra.com", @"www.opop90.com", @"www.opop80.com", @"www.baidu.com", @"www.163.com"];
+    [SharedSocketsManager sharedInstance].domainIPMap = [self generateRouteIPForDomain:domains];
+    NSLog(@"jsp---- %@", [SharedSocketsManager sharedInstance].domainIPMap);
+    [self.manager.connection startVPNTunnelWithOptions:[SharedSocketsManager sharedInstance].domainIPMap andReturnError:nil];
     if (error) {
         NSLog(@"error: %@", error.localizedDescription);
     } else {
@@ -242,7 +264,7 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
         }
     } else {
         if (data.length > 0) {
-            [[SharedSocketsManager sharedInstance].myws sendPayload:data forSocket:sock];
+            [[SharedSocketsManager sharedInstance].myws sendData:data withSocket:sock];
         }
         [SharedSocketsManager sharedInstance].myws.receiveDataHandler = ^(GCDAsyncSocket *socket) {
             [socket readDataWithTimeout:-1 tag:tag];
@@ -268,7 +290,7 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
         @synchronized([SharedSocketsManager sharedInstance].socketClients) {
             [[SharedSocketsManager sharedInstance].socketClients addObject:newSocket];
             // when received a new socket client, we should send a 'connect' command to server.
-            [[SharedSocketsManager sharedInstance].myws sendConnectForSocket:newSocket];
+            [[SharedSocketsManager sharedInstance].myws sendData:nil withSocket:newSocket];
             [SharedSocketsManager sharedInstance].myws.connectionResponseHandler = ^(GCDAsyncSocket *socket) {
                 NSLog(@"jsp----------connectionResponseHandler");
                 [socket readDataWithTimeout:-1 tag:0];

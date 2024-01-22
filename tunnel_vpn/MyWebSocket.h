@@ -8,9 +8,6 @@
 @property(nonatomic, copy) void (^connectionResponseHandler)(GCDAsyncSocket *socket);
 @property(nonatomic, copy) void (^receiveDataHandler)(GCDAsyncSocket *socket);
 
-
-- (void)sendConnectForSocket:(GCDAsyncSocket *)clientSocket;
-- (void)sendPayload:(NSData *)payload forSocket:(GCDAsyncSocket *)socket;
-
+- (void)sendData:(NSData *)data withSocket:(GCDAsyncSocket *)socket;
 
 @end

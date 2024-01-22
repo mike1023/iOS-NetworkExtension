@@ -22,15 +22,14 @@ static const char *CLIENT_QUEUE_NAME = "com.opentext.tunnel_vpn.client";
 @interface PacketTunnelProvider ()<GCDAsyncSocketDelegate>
 @property (nonatomic, copy) void (^completionHandler)(NSError *);
 
-@property (nonatomic, copy) NSMutableArray * routeIPArr;
 @property (nonatomic, copy) NSArray * domainArr;
 
 @property (nonatomic, copy) NSString * requestDomainName;
 @property (nonatomic, copy) NSArray * userDomainArr;
+@property (nonatomic, copy) NSArray * routeIPs;
 
 @property (nonatomic, strong) NSMutableDictionary * connectionMap;
-@property (nonatomic, strong) NSMutableDictionary * domainIPMap;
-@property (nonatomic, strong) NSMutableSet * randomIPSet;
+@property (nonatomic, strong) NSDictionary * domainIPDict;
 
 @property (nonatomic, strong) GCDAsyncSocket* socketClient;
 @property (nonatomic, strong) dispatch_queue_t socketQueue;
@@ -41,13 +40,16 @@ static const char *CLIENT_QUEUE_NAME = "com.opentext.tunnel_vpn.client";
 
 - (void)startTunnelWithOptions:(NSDictionary *)options completionHandler:(void (^)(NSError *))completionHandler {
     // Add code here to start the process of connecting the tunnel.
-    self.userDomainArr = options[@"name"];
-    self.routeIP = options[@"ip"];
-    self.domainIPMap = [NSMutableDictionary dictionary];
-    self.randomIPSet = [NSMutableSet set];
-    self.routeIPArr = [NSMutableArray array];
-    
-    [self generateRouteIPForDomain];
+    NSMutableDictionary * tempDict = [NSMutableDictionary dictionaryWithDictionary:options];
+    // options be added two keys by system: AuthMethod, ServerAddress
+    [tempDict removeObjectForKey:@"AuthMethod"];
+    [tempDict removeObjectForKey:@"ServerAddress"];
+    self.domainIPDict = [tempDict copy];
+    self.userDomainArr = tempDict.allKeys;
+    self.routeIPs = tempDict.allValues;
+    NSLog(@"jsp---- %@", self.domainIPDict);
+    NSLog(@"jsp---- %@", self.routeIPs);
+
     self.domainArr = [NSArray array];
     self.connectionMap = [NSMutableDictionary dictionary];
 
@@ -56,25 +58,6 @@ static const char *CLIENT_QUEUE_NAME = "com.opentext.tunnel_vpn.client";
 //    [self setupTunnelNetwork];
 }
 
-- (void)generateRouteIPForDomain {
-    for (NSString *domain in self.userDomainArr) {
-        if (self.domainIPMap[domain] == nil) {
-            NSString * randomIP = [self generateRandomIP];
-            [self.routeIPArr addObject:randomIP];
-            [self.domainIPMap setObject:randomIP forKey:self.requestDomainName];
-        }
-    }
-}
-- (NSString *)generateRandomIP {
-    // arc4random() % 11, return a number between [0, 10];
-    // 10.0.0.0 ----- 10.10.10.9
-    NSString * ipStr = [NSString stringWithFormat:@"10.%d.%d.%d", arc4random() % 11, arc4random() % 11, arc4random() % 10];
-    while ([self.randomIPSet containsObject:ipStr]) {
-        ipStr = [NSString stringWithFormat:@"10.%d.%d.%d", arc4random() % 11, arc4random() % 11, arc4random() % 10];
-    }
-    [self.randomIPSet addObject:ipStr];
-    return ipStr;
-}
 
 - (void)setupSocketClient {
     dispatch_queue_attr_t queueAttributes = dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL, QOS_CLASS_UTILITY, 0);
@@ -119,13 +102,13 @@ static const char *CLIENT_QUEUE_NAME = "com.opentext.tunnel_vpn.client";
     settings.MTU = @65535;
     NEIPv4Settings * ipv4Settings = [[NEIPv4Settings alloc] initWithAddresses:@[ip] subnetMasks:@[subnetMask]];
     NSMutableArray * routeArr = [NSMutableArray array];
-    for (NSString *routeIP in self.routeIPArr) {
+    for (NSString *routeIP in self.routeIPs) {
         NEIPv4Route * allowRoute = [[NEIPv4Route alloc] initWithDestinationAddress:routeIP subnetMask:subnetMask];
         [routeArr addObject:allowRoute];
     }
-    NEIPv4Route * allowDNSRoute = [[NEIPv4Route alloc] initWithDestinationAddress:@"1.1.1.1" subnetMask:subnetMask];
+    NEIPv4Route * allowDNSRoute = [[NEIPv4Route alloc] initWithDestinationAddress:@"2.2.2.2" subnetMask:subnetMask];
     [routeArr addObject:allowDNSRoute];
-    ipv4Settings.includedRoutes = routeArr;
+    ipv4Settings.includedRoutes = [routeArr copy];
 //    ipv4Settings.excludedRoutes = @[
 //        [[NEIPv4Route alloc] initWithDestinationAddress:@"10.0.0.0" subnetMask:@"255.0.0.0"],
 //        [[NEIPv4Route alloc] initWithDestinationAddress:@"127.0.0.0" subnetMask:@"255.0.0.0"],
@@ -143,9 +126,9 @@ static const char *CLIENT_QUEUE_NAME = "com.opentext.tunnel_vpn.client";
 //    settings.IPv6Settings = ipv6Settings;
     
     //dns setting
-    NEDNSSettings * dnsSettings = [[NEDNSSettings alloc] initWithServers:@[@"1.1.1.1"]];
+    NEDNSSettings * dnsSettings = [[NEDNSSettings alloc] initWithServers:@[@"2.2.2.2"]];
     dnsSettings.matchDomains = self.userDomainArr;
-    dnsSettings.matchDomainsNoSearch = YES;
+    dnsSettings.matchDomainsNoSearch = NO;
     settings.DNSSettings = dnsSettings;
     
     __weak typeof(self) weakSelf = self;
@@ -188,7 +171,7 @@ static const char *CLIENT_QUEUE_NAME = "com.opentext.tunnel_vpn.client";
 
 - (void)parsePacket:(NSData *)packet {
     Byte *byteArr = (Byte *)packet.bytes;
-    
+    NSLog(@"jsp---- parsePacket  from tun0: %@", packet.hexString);
     // we only parse IPv4 packet now.
     NSUInteger ipVersion = [self getIPVersion:byteArr];
     if (ipVersion == 4) {
@@ -203,7 +186,7 @@ static const char *CLIENT_QUEUE_NAME = "com.opentext.tunnel_vpn.client";
             // get src des port
             UInt16 srcPort = [self getSourcePort:byteArr];
             UInt16 desPort = [self getDestinationPort:byteArr];
-            
+            NSLog(@"jsp------ tcp packet: %@", packet.hexString);
             // 1. read: 10.10.10.10:1234 ----> 1.2.3.4:80
             if (byteArr[12] == 0x0a && byteArr[13] == 0x0a &&
                 byteArr[14] == 0x0a && byteArr[15] == 0x0a &&
@@ -374,12 +357,15 @@ static const char *CLIENT_QUEUE_NAME = "com.opentext.tunnel_vpn.client";
             // 2. destination port: generally, 53 is for DNS query
             UInt16 desPort = [self getDestinationPort:byteArr];
             if (desPort == 53) {
+                NSLog(@"jsp------ dns query: %@", packet.hexString);
+
                 // 3. only reply DNS query which its type is 'A'(IPv4)
                 // 00 1C (28): AAAA(IPv6)
                 // 00 41 (65): HTTPS
                 // 00 01 (1):  A(IPv4)
                 UInt16 type = [self getDNSQueryType:byteArr];
                 if (type == 1) {
+//                    NSLog(@"jsp------ dns query: %@", packet.hexString);
                     // 3. get the target DNS query domainame
                     if ([self isPacketForPrivateDomainQuery:byteArr]) {
                         [self generateDNSResponsePacket:byteArr];
@@ -430,11 +416,6 @@ static const char *CLIENT_QUEUE_NAME = "com.opentext.tunnel_vpn.client";
         NSString * domainCombined = [tempArr componentsJoinedByString:@""];
         if ([domainCombined isEqualToString:domainStr]) {
             self.requestDomainName = domainWithoutHttp;
-//            // generate an IP address for this domain.
-//            if (self.domainIPMap[self.requestDomainName] == nil) {
-//                NSString * randomIP = [self generateRandomIP];
-//                [self.domainIPMap setObject:randomIP forKey:self.requestDomainName];
-//            }
             self.domainArr = [res copy];
             NSLog(@"jsp---requestDomainName: %@", self.requestDomainName);
             NSLog(@"jsp--- domainArr: %@", self.domainArr);
@@ -497,14 +478,14 @@ static const char *CLIENT_QUEUE_NAME = "com.opentext.tunnel_vpn.client";
     // time to live
     Byte ttl1 = 0x00;
     Byte ttl2 = 0x00;
-    Byte ttl3 = 0x70;
-    Byte ttl4 = 0x80;
+    Byte ttl3 = 0x01;
+    Byte ttl4 = 0x2c;
     
     // data length
     Byte len1 = 0x00;
     Byte len2 = 0x04;
     
-    NSString * routeIP = [self.domainIPMap valueForKey:self.requestDomainName];
+    NSString * routeIP = [self.domainIPDict valueForKey:self.requestDomainName];
     NSArray * ipArr = [routeIP componentsSeparatedByString:@"."];
     
     Byte ip1 = (Byte)[ipArr[0] intValue];

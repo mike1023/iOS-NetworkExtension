@@ -14,26 +14,34 @@
 - (void)didClose
 {
     [super didClose];
+    NSLog(@"jsp------didClose");
 }
 
+// [version, cmd(0x00, 0x01), type, domain_len, (domain), desPort1, desPort2, srcPort1, srcPort2]
 - (void)didReceiveData:(NSData *)data {
     if (data.length) {
         NSLog(@"jsp----- websocket server receive data length from ws client: %lu", (unsigned long)data.length);
         NSMutableArray * socketClients = [SharedSocketsManager sharedInstance].socketClients;
         GCDAsyncSocket *currentSocket = nil;
-        NSInteger len = data.length;
+        NSInteger totalLen = data.length;
         
         Byte * headerBytes = (Byte *)data.bytes;
-        Byte srcPort1 = headerBytes[9];
-        Byte srcPort2 = headerBytes[10];
+        // get domain name len
+        Byte domainLen = headerBytes[3];
+        
+        Byte srcPort1 = headerBytes[domainLen + 5];
+        Byte srcPort2 = headerBytes[domainLen + 6];
         
         Byte srcport[] = {srcPort1, srcPort2};
         UInt16 portValue;
         memcpy(&portValue, srcport, sizeof(portValue));
         // iOS is little-endian by default
         UInt16 res = htons(portValue);
-        if (len > 11) {
-            NSData * payload = [data subdataWithRange:NSMakeRange(11, data.length - 11)];
+        
+        NSUInteger headerLen = 4 + domainLen + 4;
+        
+        if (totalLen > headerLen) {
+            NSData * payload = [data subdataWithRange:NSMakeRange(headerLen + 1, totalLen - headerLen)];
             for (GCDAsyncSocket *socket in socketClients) {
                 if (socket.connectedPort == res) {
                     currentSocket = socket;
@@ -63,70 +71,48 @@
     UInt16 desport = [[portMap valueForKey:[NSString stringWithFormat:@"%d", srcPort]] intValue];
     return desport;
 }
- 
+- (NSData *)getDomainDataFromSocket:(GCDAsyncSocket *)socket {
+    NSString * clientRemoteIP = socket.connectedHost;
+    NSString * domain = [[SharedSocketsManager sharedInstance].domainIPMap allKeysForObject:clientRemoteIP].firstObject;
+    NSData * domainData = [domain dataUsingEncoding:NSUTF8StringEncoding];
+    return domainData;
+}
 
-- (void)sendPayload:(NSData *)payload forSocket:(GCDAsyncSocket *)socket {
+
+// header: [version, cmd, ipPro, domain, desPort1, desPort2, srcPort1, srcPort2]
+- (void)sendData:(NSData *)data withSocket:(GCDAsyncSocket *)socket {
+    Byte version = 0x01;
+    Byte cmd = 0x12;
+    Byte domainType = 0x03;
+    
+
+    //get client remote hostname.
+    NSData * domainData = [self getDomainDataFromSocket:socket];
+    Byte domain_len = domainData.length;
+    
+    Byte headerByte[] = {version, cmd, domainType, domain_len};
+    NSData *headerData = [NSData dataWithBytes:headerByte length:sizeof(headerByte)];
+    
     uint16_t srcPort = socket.connectedPort;
     Byte srcPort1 = (srcPort >> 8) & 0xff;
     Byte srcPort2 = srcPort & 0xff;
-    
-    Byte version = 0x01;
-    Byte cmd = 0x12;
-    Byte ipPro = 0x04;
-    
-    NSString * remoteIP = [SharedSocketsManager sharedInstance].remoteIP;
-    NSArray * ipArr = [remoteIP componentsSeparatedByString:@"."];
-    Byte ip1 = (Byte)[ipArr[0] intValue];
-    Byte ip2 = (Byte)[ipArr[1] intValue];
-    Byte ip3 = (Byte)[ipArr[2] intValue];
-    Byte ip4 = (Byte)[ipArr[3] intValue];
-    
     //des port
     UInt16 desport = [self getDesPort:srcPort];
-    
     Byte desPort1 = (desport >> 8) & 0xff;
     Byte desPort2 = desport & 0xff;
     
-    Byte headerBytes[] = {
-        version, cmd, ipPro, ip1, ip2, ip3, ip4,
-        desPort1, desPort2, srcPort1, srcPort2
-    };
-    NSMutableData * header = [NSMutableData dataWithBytes:headerBytes length:sizeof(headerBytes)];
-    [header appendData:payload];
-    [self sendData:header isBinary:YES];
-}
+    Byte portBytes[] = {desPort1, desPort2, srcPort1, srcPort2};
+    NSData *portData = [NSData dataWithBytes:portBytes length:sizeof(portBytes)];
 
-// send connect command to server.
-- (void)sendConnectForSocket:(GCDAsyncSocket *)clientSocket {
-    uint16_t srcPort = clientSocket.connectedPort;
-    Byte srcPort1 = (srcPort >> 8) & 0xff;
-    Byte srcPort2 = srcPort & 0xff;
+    NSMutableData *toConnectorData = [NSMutableData data];
+    [toConnectorData appendData:headerData];
+    [toConnectorData appendData:domainData];
+    [toConnectorData appendData:portData];
     
-    Byte version = 0x01;
-    Byte cmd = 0x11;
-    Byte ipPro = 0x04;
-    
-    NSString * remoteIP = [SharedSocketsManager sharedInstance].remoteIP;
-    NSArray * ipArr = [remoteIP componentsSeparatedByString:@"."];
-    Byte ip1 = (Byte)[ipArr[0] intValue];
-    Byte ip2 = (Byte)[ipArr[1] intValue];
-    Byte ip3 = (Byte)[ipArr[2] intValue];
-    Byte ip4 = (Byte)[ipArr[3] intValue];
-    
-    // des port
-    // we should get des port from portMap
-    UInt16 desport = [self getDesPort:srcPort];
-    
-    Byte desPort1 = (desport >> 8) & 0xff;
-    Byte desPort2 = desport & 0xff;
-    
-    Byte connectBytes[] = {
-        version, cmd, ipPro, ip1, ip2, ip3, ip4,
-        desPort1, desPort2, srcPort1, srcPort2
-    };
-    NSData * data = [NSData dataWithBytes:connectBytes length:sizeof(connectBytes)];
-    
-    [self sendData:data isBinary:YES];
+    if (data) {
+        [toConnectorData appendData:data];
+    }
+    [self sendData:toConnectorData isBinary:YES];
 }
 
 @end
