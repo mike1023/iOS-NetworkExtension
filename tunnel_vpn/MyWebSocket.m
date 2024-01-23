@@ -21,9 +21,6 @@
 - (void)didReceiveData:(NSData *)data {
     [super didReceiveData:data];
     if (data.length) {
-//        NSLog(@"jsp----- websocket server receive data length from ws client: %lu", (unsigned long)data.length);
-        NSLog(@"jsp----- websocket server receive data: %@", data.hexString);
-        
         NSMutableArray * socketClients = [SharedSocketsManager sharedInstance].socketClients;
         GCDAsyncSocket *currentSocket = nil;
         NSInteger totalLen = data.length;
@@ -31,21 +28,17 @@
         Byte * headerBytes = (Byte *)data.bytes;
         // get domain name len
         Byte domainLen = headerBytes[3];
-        
-        Byte srcPort1 = headerBytes[domainLen + 5];
-        Byte srcPort2 = headerBytes[domainLen + 6];
+        Byte srcPort1 = headerBytes[domainLen + 6];
+        Byte srcPort2 = headerBytes[domainLen + 7];
         
         Byte srcport[] = {srcPort1, srcPort2};
         UInt16 portValue;
         memcpy(&portValue, srcport, sizeof(portValue));
         // iOS is little-endian by default
         UInt16 res = htons(portValue);
-        
         NSUInteger headerLen = 4 + domainLen + 4;
-        
         if (totalLen > headerLen) {
-            NSLog(@"jsp----- totalLen > headerLen");
-            NSData * payload = [data subdataWithRange:NSMakeRange(headerLen + 1, totalLen - headerLen)];
+            NSData * payload = [data subdataWithRange:NSMakeRange(headerLen, totalLen - headerLen)];
             for (GCDAsyncSocket *socket in socketClients) {
                 if (socket.connectedPort == res) {
                     currentSocket = socket;
@@ -57,7 +50,6 @@
                 self.receiveDataHandler(currentSocket);
             }
         } else {
-            NSLog(@"jsp---- xxxxxxxxxxxxxx");
             if (self.connectionResponseHandler) {
                 for (GCDAsyncSocket *socket in socketClients) {
                     if (socket.connectedPort == res) {
@@ -93,7 +85,6 @@
     }
     Byte domainType = 0x03;
     
-
     //get client remote hostname.
     NSData * domainData = [self getDomainDataFromSocket:socket];
     Byte domain_len = domainData.length;

@@ -85,8 +85,6 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
     if (self.tf.text.length > 0) {
         NSString * text = [NSString stringWithFormat:@"http://%@", self.tf.text];
         NSURL * url = [NSURL URLWithString:text];
-        
-        
         SFSafariViewControllerConfiguration * config = [[SFSafariViewControllerConfiguration alloc] init];
         config.entersReaderIfAvailable = YES;
         SFSafariViewController * vc = [[SFSafariViewController alloc] initWithURL:url configuration:config];
@@ -121,7 +119,7 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
                     NSLog(@"load error: %@", error.localizedDescription);
                     return;
                 }
-//                [self startServer];
+                [self startServer];
             }];
         }
     }];
@@ -202,11 +200,9 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
 }
 
 - (void)startVPN {
-//    [self startServer];
     NSError * error = nil;
     NSArray * domains = @[@"server002.uftmobile.admlabs.aws.swinfra.net", @"www.opop90.com", @"www.opop80.com", @"www.baidu.com", @"www.163.com"];
     [SharedSocketsManager sharedInstance].domainIPMap = [self generateRouteIPForDomain:domains];
-    NSLog(@"jsp---- %@", [SharedSocketsManager sharedInstance].domainIPMap);
     [self.manager.connection startVPNTunnelWithOptions:[SharedSocketsManager sharedInstance].domainIPMap andReturnError:nil];
     if (error) {
         NSLog(@"error: %@", error.localizedDescription);
@@ -248,7 +244,6 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
 
 - (void)socket:(GCDAsyncSocket *)sock didReadData:(NSData *)data withTag:(long)tag {
     if (tag == 101) {
-        NSLog(@"jsp----- aaaaaaaa read port data: %@", [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
         // message about port map
         if (data.length) {
             NSError *error = nil;
@@ -257,12 +252,10 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
                 NSLog(@"jsp---- port map error: %@", error);
             } else {
                 [SharedSocketsManager sharedInstance].portMap = [NSMutableDictionary dictionaryWithDictionary:dictFromData];
-                NSLog(@"jsp--- receive data from tunnel socket:%@", dictFromData);
-                [sock readDataWithTimeout:-1 tag:tag];
+                [sock readDataWithTimeout:-1 tag:101];
             }
         }
     } else {
-        NSLog(@"jsp----- bbbbbbb read http data: %@", [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
         if (data.length > 0) {
             [[SharedSocketsManager sharedInstance].myws sendData:data withSocket:sock];
         }
@@ -278,7 +271,7 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
 
 - (void)socket:(GCDAsyncSocket *)sock didAcceptNewSocket:(GCDAsyncSocket *)newSocket
 {
-    NSLog(@"jsp-----%@ new socket connect: %@ %d %@", sock, newSocket, newSocket.connectedPort, newSocket.localHost);
+//    NSLog(@"jsp-----%@ new socket connect: %@ %d %@", sock, newSocket, newSocket.connectedPort, newSocket.localHost);
     if (self.clientID == -1) {
         self.clientID += 1;
         @synchronized (self.socketForMapArr) {
@@ -286,14 +279,13 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
             [newSocket readDataWithTimeout:-1 tag:101];
         }
     } else {
-        NSLog(@"jsp---- 22222222222");
         // This method is executed on the socketQueue (not the main thread)
         @synchronized([SharedSocketsManager sharedInstance].socketClients) {
             [[SharedSocketsManager sharedInstance].socketClients addObject:newSocket];
             // when received a new socket client, we should send a 'connect' command to server.
             [[SharedSocketsManager sharedInstance].myws sendData:nil withSocket:newSocket];
             [SharedSocketsManager sharedInstance].myws.connectionResponseHandler = ^(GCDAsyncSocket *socket) {
-                NSLog(@"jsp----------connectionResponseHandler");
+//                NSLog(@"jsp----------connectionResponseHandler");
                 [socket readDataWithTimeout:-1 tag:0];
             };
         }
