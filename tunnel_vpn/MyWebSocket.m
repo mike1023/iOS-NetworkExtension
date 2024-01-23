@@ -19,8 +19,11 @@
 
 // [version, cmd(0x00, 0x01), type, domain_len, (domain), desPort1, desPort2, srcPort1, srcPort2]
 - (void)didReceiveData:(NSData *)data {
+    [super didReceiveData:data];
     if (data.length) {
-        NSLog(@"jsp----- websocket server receive data length from ws client: %lu", (unsigned long)data.length);
+//        NSLog(@"jsp----- websocket server receive data length from ws client: %lu", (unsigned long)data.length);
+        NSLog(@"jsp----- websocket server receive data: %@", data.hexString);
+        
         NSMutableArray * socketClients = [SharedSocketsManager sharedInstance].socketClients;
         GCDAsyncSocket *currentSocket = nil;
         NSInteger totalLen = data.length;
@@ -41,6 +44,7 @@
         NSUInteger headerLen = 4 + domainLen + 4;
         
         if (totalLen > headerLen) {
+            NSLog(@"jsp----- totalLen > headerLen");
             NSData * payload = [data subdataWithRange:NSMakeRange(headerLen + 1, totalLen - headerLen)];
             for (GCDAsyncSocket *socket in socketClients) {
                 if (socket.connectedPort == res) {
@@ -53,6 +57,7 @@
                 self.receiveDataHandler(currentSocket);
             }
         } else {
+            NSLog(@"jsp---- xxxxxxxxxxxxxx");
             if (self.connectionResponseHandler) {
                 for (GCDAsyncSocket *socket in socketClients) {
                     if (socket.connectedPort == res) {
@@ -83,6 +88,9 @@
 - (void)sendData:(NSData *)data withSocket:(GCDAsyncSocket *)socket {
     Byte version = 0x01;
     Byte cmd = 0x12;
+    if (data == nil) {
+        cmd = 0x11;
+    }
     Byte domainType = 0x03;
     
 
@@ -113,6 +121,7 @@
         [toConnectorData appendData:data];
     }
     [self sendData:toConnectorData isBinary:YES];
+    
 }
 
 @end

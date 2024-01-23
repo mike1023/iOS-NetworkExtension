@@ -42,8 +42,7 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
     [super viewDidLoad];
     self.clientID = -1;
     self.socketForMapArr = [NSMutableArray array];
-    self.tf.text = @"aserver002.uftmobile.admlabs.aws.swinfra.net:8080";
-//    self.tf.text = @"www.baidu.com";
+    self.tf.text = @"server002.uftmobile.admlabs.aws.swinfra.net:8080";
 
     [SharedSocketsManager sharedInstance].socketClients = [NSMutableArray array];
     dispatch_queue_attr_t queueAttributes = dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL, QOS_CLASS_UTILITY, 0);
@@ -205,7 +204,7 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
 - (void)startVPN {
 //    [self startServer];
     NSError * error = nil;
-    NSArray * domains = @[@"server002.uftmobile.admlabs.aws.swinfra.com", @"www.opop90.com", @"www.opop80.com", @"www.baidu.com", @"www.163.com"];
+    NSArray * domains = @[@"server002.uftmobile.admlabs.aws.swinfra.net", @"www.opop90.com", @"www.opop80.com", @"www.baidu.com", @"www.163.com"];
     [SharedSocketsManager sharedInstance].domainIPMap = [self generateRouteIPForDomain:domains];
     NSLog(@"jsp---- %@", [SharedSocketsManager sharedInstance].domainIPMap);
     [self.manager.connection startVPNTunnelWithOptions:[SharedSocketsManager sharedInstance].domainIPMap andReturnError:nil];
@@ -248,8 +247,8 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
 
 
 - (void)socket:(GCDAsyncSocket *)sock didReadData:(NSData *)data withTag:(long)tag {
-    NSLog(@"jsp----- didReadData: %@", [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
     if (tag == 101) {
+        NSLog(@"jsp----- aaaaaaaa read port data: %@", [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
         // message about port map
         if (data.length) {
             NSError *error = nil;
@@ -259,10 +258,11 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
             } else {
                 [SharedSocketsManager sharedInstance].portMap = [NSMutableDictionary dictionaryWithDictionary:dictFromData];
                 NSLog(@"jsp--- receive data from tunnel socket:%@", dictFromData);
-                [sock readDataWithTimeout:-1 tag:101];
+                [sock readDataWithTimeout:-1 tag:tag];
             }
         }
     } else {
+        NSLog(@"jsp----- bbbbbbb read http data: %@", [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
         if (data.length > 0) {
             [[SharedSocketsManager sharedInstance].myws sendData:data withSocket:sock];
         }
@@ -286,6 +286,7 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
             [newSocket readDataWithTimeout:-1 tag:101];
         }
     } else {
+        NSLog(@"jsp---- 22222222222");
         // This method is executed on the socketQueue (not the main thread)
         @synchronized([SharedSocketsManager sharedInstance].socketClients) {
             [[SharedSocketsManager sharedInstance].socketClients addObject:newSocket];

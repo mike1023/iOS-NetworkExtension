@@ -128,7 +128,7 @@ static const char *CLIENT_QUEUE_NAME = "com.opentext.tunnel_vpn.client";
     //dns setting
     NEDNSSettings * dnsSettings = [[NEDNSSettings alloc] initWithServers:@[@"2.2.2.2"]];
     dnsSettings.matchDomains = self.userDomainArr;
-    dnsSettings.matchDomainsNoSearch = NO;
+    dnsSettings.matchDomainsNoSearch = YES;
     settings.DNSSettings = dnsSettings;
     
     __weak typeof(self) weakSelf = self;
@@ -171,7 +171,6 @@ static const char *CLIENT_QUEUE_NAME = "com.opentext.tunnel_vpn.client";
 
 - (void)parsePacket:(NSData *)packet {
     Byte *byteArr = (Byte *)packet.bytes;
-    NSLog(@"jsp---- parsePacket  from tun0: %@", packet.hexString);
     // we only parse IPv4 packet now.
     NSUInteger ipVersion = [self getIPVersion:byteArr];
     if (ipVersion == 4) {
@@ -186,7 +185,6 @@ static const char *CLIENT_QUEUE_NAME = "com.opentext.tunnel_vpn.client";
             // get src des port
             UInt16 srcPort = [self getSourcePort:byteArr];
             UInt16 desPort = [self getDestinationPort:byteArr];
-            NSLog(@"jsp------ tcp packet: %@", packet.hexString);
             // 1. read: 10.10.10.10:1234 ----> 1.2.3.4:80
             if (byteArr[12] == 0x0a && byteArr[13] == 0x0a &&
                 byteArr[14] == 0x0a && byteArr[15] == 0x0a &&
@@ -357,7 +355,7 @@ static const char *CLIENT_QUEUE_NAME = "com.opentext.tunnel_vpn.client";
             // 2. destination port: generally, 53 is for DNS query
             UInt16 desPort = [self getDestinationPort:byteArr];
             if (desPort == 53) {
-                NSLog(@"jsp------ dns query: %@", packet.hexString);
+//                NSLog(@"jsp------ dns query: %@", packet.hexString);
 
                 // 3. only reply DNS query which its type is 'A'(IPv4)
                 // 00 1C (28): AAAA(IPv6)
@@ -433,7 +431,7 @@ static const char *CLIENT_QUEUE_NAME = "com.opentext.tunnel_vpn.client";
     Byte transactionID1 = byteArr[28];
     Byte transactionID2 = byteArr[29];
     // 2. Flags
-    Byte flags1 = 0x85;
+    Byte flags1 = 0x81;
     Byte flags2 = 0x80;
     // 3. Questions
     Byte questions1 = byteArr[32]; //0x00
@@ -478,8 +476,8 @@ static const char *CLIENT_QUEUE_NAME = "com.opentext.tunnel_vpn.client";
     // time to live
     Byte ttl1 = 0x00;
     Byte ttl2 = 0x00;
-    Byte ttl3 = 0x01;
-    Byte ttl4 = 0x2c;
+    Byte ttl3 = 0x00;
+    Byte ttl4 = 0x78;
     
     // data length
     Byte len1 = 0x00;
@@ -562,7 +560,16 @@ static const char *CLIENT_QUEUE_NAME = "com.opentext.tunnel_vpn.client";
         resUDPForChecksum[m + i] = resDNS[i];
     }
     
-    uint16_t udpChecksum = [self calculateChecksum:resUDPForChecksum length:sizeof(resUDPForChecksum)];
+    size_t count = sizeof(resUDPForChecksum);
+    uint16_t udpChecksum;
+    if (count % 2 != 0) {
+        Byte resArr[count + 1];
+        memcpy(resArr, resUDPForChecksum, count);
+        resArr[count] = 0x00;
+        udpChecksum = [self calculateChecksum:resArr length:sizeof(resArr)];
+    } else {
+        udpChecksum = [self calculateChecksum:resUDPForChecksum length:sizeof(resUDPForChecksum)];
+    }
     udpChecksum1 = (udpChecksum >> 8) & 0xff; // upper byte
     udpChecksum2 = udpChecksum & 0xff; // low byte
     
