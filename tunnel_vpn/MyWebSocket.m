@@ -112,7 +112,6 @@
         [toConnectorData appendData:data];
     }
     [self sendData:toConnectorData isBinary:YES];
-    
 }
 
 @end

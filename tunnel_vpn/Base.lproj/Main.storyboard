@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="22155" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="22505" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
     <device id="retina6_12" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="22131"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="22504"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
@@ -80,25 +80,35 @@
                                     <action selector="requesstWeb:" destination="BYZ-38-t0r" eventType="touchUpInside" id="jhw-Bv-rtR"/>
                                 </connections>
                             </button>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="PWe-CW-d43">
+                                <rect key="frame" x="16" y="401" width="361" height="20.333333333333314"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <constraints>
                             <constraint firstItem="z0Q-7G-vOa" firstAttribute="top" secondItem="fD3-5N-qHG" secondAttribute="bottom" constant="8" id="3aM-oA-wMH"/>
+                            <constraint firstItem="PWe-CW-d43" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="16" id="3jQ-eB-Hjm"/>
                             <constraint firstItem="CFu-yQ-IxZ" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="9" id="5EM-2P-j1f"/>
                             <constraint firstItem="fD3-5N-qHG" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="54" id="5KA-1K-R4Y"/>
                             <constraint firstItem="V3m-yD-hjO" firstAttribute="top" secondItem="z0Q-7G-vOa" secondAttribute="bottom" constant="65" id="B0e-wD-ua9"/>
+                            <constraint firstItem="PWe-CW-d43" firstAttribute="top" secondItem="CFu-yQ-IxZ" secondAttribute="bottom" constant="47" id="Dfd-g3-6IM"/>
                             <constraint firstItem="CFu-yQ-IxZ" firstAttribute="top" secondItem="V3m-yD-hjO" secondAttribute="bottom" constant="8" symbolic="YES" id="LkG-1R-Fvt"/>
                             <constraint firstItem="V3m-yD-hjO" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" constant="-103.5" id="MVl-bE-P5F"/>
                             <constraint firstItem="fD3-5N-qHG" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="Rdx-cG-Rhw"/>
                             <constraint firstItem="fD3-5N-qHG" firstAttribute="trailing" secondItem="6Tk-OE-BBY" secondAttribute="trailing" id="UPY-Yq-EvA"/>
                             <constraint firstItem="FBF-zI-cj2" firstAttribute="leading" secondItem="CFu-yQ-IxZ" secondAttribute="trailing" constant="20" id="dHb-BO-hUU"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="PWe-CW-d43" secondAttribute="trailing" constant="16" id="ekZ-mF-0CO"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="FBF-zI-cj2" secondAttribute="trailing" constant="16" id="hoM-Xx-Gx9"/>
                             <constraint firstItem="z0Q-7G-vOa" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" constant="-85.166666666666671" id="tIx-jt-rLB"/>
                             <constraint firstItem="FBF-zI-cj2" firstAttribute="top" secondItem="fD3-5N-qHG" secondAttribute="bottom" constant="155" id="wfX-xZ-E76"/>
                         </constraints>
                     </view>
                     <connections>
+                        <outlet property="errLab" destination="PWe-CW-d43" id="2MS-hE-Sb4"/>
                         <outlet property="tf" destination="CFu-yQ-IxZ" id="QN8-PB-pKa"/>
                     </connections>
                 </viewController>
@@ -112,7 +122,7 @@
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
         </systemColor>
         <systemColor name="systemGray6Color">
-            <color red="0.94901960780000005" green="0.94901960780000005" blue="0.96862745100000003" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <color red="0.94901960784313721" green="0.94901960784313721" blue="0.96862745098039216" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
     </resources>
 </document>

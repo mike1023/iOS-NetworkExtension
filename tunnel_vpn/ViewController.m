@@ -32,6 +32,7 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
 @property (nonatomic, strong) NSMutableArray * socketForMapArr;
 
 @property (nonatomic, strong) NSMutableSet * randomIPSet;
+@property (weak, nonatomic) IBOutlet UILabel *errLab;
 
 
 @end
@@ -49,7 +50,8 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
     self.socketQueue = dispatch_queue_create(QUEUE_NAME, queueAttributes);
     [NETunnelProviderManager loadAllFromPreferencesWithCompletionHandler:^(NSArray<NETunnelProviderManager *> * _Nullable managers, NSError * _Nullable error) {
         if (error) {
-            NSLog(@"load preferences error: %@", error.localizedFailureReason);
+            NSLog(@"load preferences error: %@", error);
+            self.errLab.text = error.localizedFailureReason;
             return;
         }
         if (managers.count == 0) {
@@ -112,11 +114,13 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
     [self.manager saveToPreferencesWithCompletionHandler:^(NSError * _Nullable error) {
         if (error) {
             NSLog(@"error: %@", error.localizedDescription);
+            self.errLab.text = @"22222222 saveToPreferences error";
         } else {
             NSLog(@"configure success......");
             [self.manager loadFromPreferencesWithCompletionHandler:^(NSError * _Nullable error) {
                 if (error) {
                     NSLog(@"load error: %@", error.localizedDescription);
+                    self.errLab.text = @"33333333 loadFromPreferences error";
                     return;
                 }
                 [self startServer];
@@ -206,6 +210,7 @@ static const char *QUEUE_NAME = "com.opentext.tunnel_vpn";
     [self.manager.connection startVPNTunnelWithOptions:[SharedSocketsManager sharedInstance].domainIPMap andReturnError:nil];
     if (error) {
         NSLog(@"error: %@", error.localizedDescription);
+        self.errLab.text = @"4444444444 startVPNTunnelWithOptions error";
     } else {
         NSLog(@"start vpn success......");
     }
